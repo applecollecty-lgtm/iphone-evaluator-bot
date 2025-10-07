@@ -97,25 +97,39 @@ serve(async (req) => {
     
     console.log('Spreadsheet data fetched successfully');
 
-    // Parse prices (assuming format: Model | Storage | Price)
+    // Parse prices from Google Sheet
     const prices: Record<string, Record<string, number>> = {};
+    
+    console.log('Raw data from sheet:', JSON.stringify(data.values?.slice(0, 5)));
     
     if (data.values && data.values.length > 1) {
       // Skip header row
       for (let i = 1; i < data.values.length; i++) {
         const row = data.values[i];
         if (row.length >= 3) {
-          const model = row[0]?.trim();
-          const storage = row[1]?.trim();
+          let model = row[0]?.toString().trim();
+          let storage = row[1]?.toString().trim();
           const priceStr = row[2]?.toString().replace(/\D/g, '');
           const price = parseInt(priceStr || '0');
+          
+          // Normalize model name (remove extra spaces, make consistent)
+          model = model
+            .replace(/iphone/i, 'iPhone')
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          // Normalize storage format to match frontend (128GB, 256GB, etc.)
+          storage = storage
+            .replace(/гб|gb/gi, 'GB')
+            .replace(/\s+/g, '')
+            .trim();
           
           if (model && storage && price > 0) {
             if (!prices[model]) {
               prices[model] = {};
             }
             prices[model][storage] = price;
-            console.log(`Price added: ${model} ${storage} = ${price}`);
+            console.log(`Parsed: ${model} | ${storage} | ${price} ₽`);
           }
         }
       }

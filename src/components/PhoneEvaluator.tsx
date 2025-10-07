@@ -115,15 +115,24 @@ export const PhoneEvaluator = () => {
       }
 
       const prices = pricesData?.prices || {};
+      console.log('Available prices:', prices);
+      console.log('Looking for:', data.model, data.storage);
+      
       const modelPrices = prices[data.model];
       
       if (modelPrices && modelPrices[data.storage]) {
         setEstimatedPrice(modelPrices[data.storage]);
+        console.log('Price found in sheet:', modelPrices[data.storage]);
       } else {
         // Fallback to mock price if not found in Google Sheets
         const mockPrice = calculateMockPrice(data.model, data.storage);
         setEstimatedPrice(mockPrice);
-        console.warn('Price not found in Google Sheets, using fallback');
+        console.warn('Price not found in Google Sheets, using fallback:', mockPrice);
+        toast({
+          title: "Внимание",
+          description: "Используется приблизительная цена. Точная цена будет предоставлена менеджером.",
+          variant: "default",
+        });
       }
       
       setStep("result");
@@ -269,6 +278,13 @@ export const PhoneEvaluator = () => {
                   </Button>
                 ))}
               </div>
+              <Button 
+                onClick={() => setStep("welcome")} 
+                variant="ghost"
+                className="w-full mt-4"
+              >
+                ← Назад
+              </Button>
             </div>
           )}
 
@@ -290,6 +306,13 @@ export const PhoneEvaluator = () => {
                   </Button>
                 ))}
               </div>
+              <Button 
+                onClick={() => setStep("model")} 
+                variant="ghost"
+                className="w-full mt-4"
+              >
+                ← Назад
+              </Button>
             </div>
           )}
 
@@ -317,6 +340,13 @@ export const PhoneEvaluator = () => {
                   </Button>
                 ))}
               </div>
+              <Button 
+                onClick={() => setStep("storage")} 
+                variant="ghost"
+                className="w-full mt-4"
+              >
+                ← Назад
+              </Button>
             </div>
           )}
 
@@ -342,6 +372,13 @@ export const PhoneEvaluator = () => {
                   Нет
                 </Button>
               </div>
+              <Button 
+                onClick={() => setStep("battery")} 
+                variant="ghost"
+                className="w-full mt-4"
+              >
+                ← Назад
+              </Button>
             </div>
           )}
 
@@ -367,6 +404,13 @@ export const PhoneEvaluator = () => {
                   Нет
                 </Button>
               </div>
+              <Button 
+                onClick={() => setStep("scratches")} 
+                variant="ghost"
+                className="w-full mt-4"
+              >
+                ← Назад
+              </Button>
             </div>
           )}
 
@@ -390,6 +434,14 @@ export const PhoneEvaluator = () => {
                   </Button>
                 ))}
               </div>
+              <Button 
+                onClick={() => setStep("defects")} 
+                variant="ghost"
+                className="w-full mt-4"
+                disabled={isLoading}
+              >
+                ← Назад
+              </Button>
             </div>
           )}
 
