@@ -495,7 +495,11 @@ export const PhoneEvaluator = () => {
 
                 <div className="space-y-3 pt-4">
                   <Button
-                    onClick={() => window.open('https://wa.me/YOUR_PHONE_NUMBER', '_blank')}
+                    onClick={() => {
+                      const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
+                      const encodedMessage = encodeURIComponent(message);
+                      window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
+                    }}
                     className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
                   >
                     Связаться с менеджером
