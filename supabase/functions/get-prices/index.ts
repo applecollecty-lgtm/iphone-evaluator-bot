@@ -33,15 +33,18 @@ serve(async (req) => {
       iat: getNumericDate(0),
     };
 
-    // Import private key
+    // Import private key - properly handle PEM format
     const privateKeyPem = credentials.private_key;
     const pemHeader = "-----BEGIN PRIVATE KEY-----";
     const pemFooter = "-----END PRIVATE KEY-----";
-    const pemContents = privateKeyPem
-      .substring(pemHeader.length, privateKeyPem.length - pemFooter.length)
-      .replace(/\s/g, '');
     
-    const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
+    // Extract base64 content between headers
+    const base64Content = privateKeyPem
+      .replace(pemHeader, '')
+      .replace(pemFooter, '')
+      .replace(/\s+/g, '');
+    
+    const binaryDer = Uint8Array.from(atob(base64Content), c => c.charCodeAt(0));
     
     const key = await crypto.subtle.importKey(
       "pkcs8",
