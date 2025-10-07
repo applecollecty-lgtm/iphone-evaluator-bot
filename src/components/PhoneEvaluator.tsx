@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
+import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -427,11 +426,18 @@ export const PhoneEvaluator = () => {
                         : "border-border hover:border-primary/50 hover:bg-primary/5"
                     )}
                   >
-                    <Checkbox
-                      checked={selectedAccessories.includes(item)}
-                      onCheckedChange={() => toggleAccessory(item)}
-                      className="h-6 w-6"
-                    />
+                    <div
+                      className={cn(
+                        "h-6 w-6 rounded border-2 flex items-center justify-center transition-colors",
+                        selectedAccessories.includes(item)
+                          ? "border-primary bg-primary"
+                          : "border-muted-foreground"
+                      )}
+                    >
+                      {selectedAccessories.includes(item) && (
+                        <Check className="h-4 w-4 text-primary-foreground" />
+                      )}
+                    </div>
                     <span className="text-lg font-medium">{item}</span>
                   </div>
                 ))}
