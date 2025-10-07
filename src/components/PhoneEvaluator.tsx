@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check } from "lucide-react";
+import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check, MessageCircle, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -494,16 +494,30 @@ export const PhoneEvaluator = () => {
                 </div>
 
                 <div className="space-y-3 pt-4">
-                  <Button
-                    onClick={() => {
-                      const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
-                      const encodedMessage = encodeURIComponent(message);
-                      window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
-                    }}
-                    className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
-                  >
-                    Связаться с менеджером
-                  </Button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      onClick={() => {
+                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
+                        const encodedMessage = encodeURIComponent(message);
+                        window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
+                      }}
+                      className="h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
+                    >
+                      <MessageCircle className="mr-2 h-5 w-5" />
+                      WhatsApp
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
+                        const encodedMessage = encodeURIComponent(message);
+                        window.open(`https://t.me/+79375723173?text=${encodedMessage}`, '_blank');
+                      }}
+                      className="h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
+                    >
+                      <Send className="mr-2 h-5 w-5" />
+                      Telegram
+                    </Button>
+                  </div>
                   <p className="text-center text-sm text-muted-foreground">
                     Менеджер свяжется с вами в ближайшее время
                   </p>
