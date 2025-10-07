@@ -19,7 +19,7 @@ serve(async (req) => {
     }
 
     const credentials = JSON.parse(serviceAccountKey);
-    const spreadsheetId = '1io6QA_SGAyLa38713OJ39WYMEalaR3DECP1UbCHOzHg';
+    const spreadsheetId = '1rIsate1-v_W_QWd73B9tJhI_Lm1zgXNTDBZ3M7XN4fg';
     
     console.log('Creating JWT for service account:', credentials.client_email);
     
