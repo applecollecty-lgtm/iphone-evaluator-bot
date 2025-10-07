@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-type Step = "welcome" | "model" | "storage" | "battery" | "scratches" | "defects" | "sim" | "result" | "rejected";
+type Step = "welcome" | "model" | "storage" | "battery" | "scratches" | "defects" | "sim" | "accessories" | "result" | "rejected";
 
 interface EvaluationData {
   model: string;
@@ -15,6 +15,7 @@ interface EvaluationData {
   scratches: string;
   defects: string;
   sim: string;
+  accessories: string;
 }
 
 const MODELS = [
@@ -75,6 +76,7 @@ export const PhoneEvaluator = () => {
     scratches: "",
     defects: "",
     sim: "",
+    accessories: "",
   });
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -118,8 +120,13 @@ export const PhoneEvaluator = () => {
     setStep("sim");
   };
 
-  const handleSimSelect = async (sim: string) => {
-    const updatedData = { ...data, sim };
+  const handleSimSelect = (sim: string) => {
+    setData({ ...data, sim });
+    setStep("accessories");
+  };
+
+  const handleAccessoriesSelect = async (accessories: string) => {
+    const updatedData = { ...data, accessories };
     setData(updatedData);
     setIsLoading(true);
     
@@ -132,6 +139,7 @@ export const PhoneEvaluator = () => {
           scratches: updatedData.scratches,
           defects: updatedData.defects,
           sim: updatedData.sim,
+          accessories: updatedData.accessories,
           estimated_price: 0,
           sale_timeline: null,
         }
@@ -167,6 +175,7 @@ export const PhoneEvaluator = () => {
       scratches: "",
       defects: "",
       sim: "",
+      accessories: "",
     });
     setRejectionReason("");
     setStep("welcome");
@@ -360,7 +369,7 @@ export const PhoneEvaluator = () => {
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold text-foreground">Какая версия SIM-карт?</h2>
-                <p className="text-muted-foreground">Последний вопрос!</p>
+                <p className="text-muted-foreground">Почти закончили!</p>
               </div>
               <div className="grid grid-cols-1 gap-3">
                 {SIM_OPTIONS.map((sim) => (
@@ -368,16 +377,71 @@ export const PhoneEvaluator = () => {
                     key={sim}
                     onClick={() => handleSimSelect(sim)}
                     variant="outline"
-                    disabled={isLoading}
                     className="h-20 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
                   >
-                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {sim}
                   </Button>
                 ))}
               </div>
               <Button 
                 onClick={() => setStep("defects")} 
+                variant="ghost"
+                className="w-full mt-4"
+              >
+                ← Назад
+              </Button>
+            </div>
+          )}
+
+          {step === "accessories" && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold text-foreground">Что есть в комплекте?</h2>
+                <p className="text-muted-foreground">Последний вопрос!</p>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                <Button
+                  onClick={() => handleAccessoriesSelect("Всё (коробка, кабель, чек)")}
+                  variant="outline"
+                  disabled={isLoading}
+                  className="h-auto py-6 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl text-left justify-start"
+                >
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                  <div className="space-y-1">
+                    <div className="font-semibold">Полный комплект</div>
+                    <div className="text-sm text-muted-foreground">Коробка, кабель, чек</div>
+                  </div>
+                </Button>
+                <Button
+                  onClick={() => handleAccessoriesSelect("Коробка и кабель")}
+                  variant="outline"
+                  disabled={isLoading}
+                  className="h-20 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                >
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                  Коробка и кабель
+                </Button>
+                <Button
+                  onClick={() => handleAccessoriesSelect("Только коробка")}
+                  variant="outline"
+                  disabled={isLoading}
+                  className="h-20 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                >
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                  Только коробка
+                </Button>
+                <Button
+                  onClick={() => handleAccessoriesSelect("Ничего")}
+                  variant="outline"
+                  disabled={isLoading}
+                  className="h-20 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                >
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                  Без комплекта
+                </Button>
+              </div>
+              <Button 
+                onClick={() => setStep("sim")} 
                 variant="ghost"
                 className="w-full mt-4"
                 disabled={isLoading}
@@ -412,6 +476,7 @@ export const PhoneEvaluator = () => {
                     <p className="font-medium">• Батарея: {data.battery}</p>
                     <p className="font-medium">• Царапины: {data.scratches}</p>
                     <p className="font-medium">• SIM: {data.sim}</p>
+                    <p className="font-medium">• Комплект: {data.accessories}</p>
                   </div>
                 </div>
 
