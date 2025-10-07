@@ -19,6 +19,7 @@ export type Database = {
           accessories: string | null
           battery: string
           created_at: string
+          cycles: string | null
           defects: string
           estimated_price: number
           id: string
@@ -32,6 +33,7 @@ export type Database = {
           accessories?: string | null
           battery: string
           created_at?: string
+          cycles?: string | null
           defects: string
           estimated_price: number
           id?: string
@@ -45,6 +47,7 @@ export type Database = {
           accessories?: string | null
           battery?: string
           created_at?: string
+          cycles?: string | null
           defects?: string
           estimated_price?: number
           id?: string
