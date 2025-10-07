@@ -30,6 +30,29 @@ const MODELS = [
   "iPhone 15 Plus",
   "iPhone 15 Pro",
   "iPhone 15 Pro Max",
+  "iPhone 16",
+  "iPhone 16 Plus",
+  "iPhone 16 Pro",
+  "iPhone 16 Pro Max",
+  "iPhone 17",
+  "iPhone 17 Pro",
+  "iPhone 17 Pro Max",
+];
+
+const UNSUITABLE_MODELS = [
+  "iPhone 12", 
+  "iPhone 12 mini", 
+  "iPhone 12 Pro", 
+  "iPhone 12 Pro Max",
+  "iPhone 11",
+  "iPhone 11 Pro",
+  "iPhone 11 Pro Max",
+  "iPhone XS",
+  "iPhone XR",
+  "iPhone X",
+  "iPhone 8",
+  "iPhone 7",
+  "iPhone SE",
 ];
 
 const STORAGE_OPTIONS = ["128GB", "256GB", "512GB", "1TB"];
@@ -53,7 +76,6 @@ export const PhoneEvaluator = () => {
     defects: "",
     sim: "",
   });
-  const [estimatedPrice, setEstimatedPrice] = useState<number>(0);
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -97,97 +119,21 @@ export const PhoneEvaluator = () => {
   };
 
   const handleSimSelect = async (sim: string) => {
-    setData({ ...data, sim });
-    setIsLoading(true);
-    
-    try {
-      const { data: pricesData, error } = await supabase.functions.invoke('get-prices');
-      
-      if (error) {
-        console.error('Error fetching prices:', error);
-        toast({
-          title: "Ошибка",
-          description: "Не удалось загрузить цены. Попробуйте позже.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const prices = pricesData?.prices || {};
-      console.log('Available prices:', prices);
-      console.log('Looking for:', data.model, data.storage);
-      
-      const modelPrices = prices[data.model];
-      
-      if (modelPrices && modelPrices[data.storage]) {
-        setEstimatedPrice(modelPrices[data.storage]);
-        console.log('Price found in sheet:', modelPrices[data.storage]);
-      } else {
-        // Fallback to mock price if not found in Google Sheets
-        const mockPrice = calculateMockPrice(data.model, data.storage);
-        setEstimatedPrice(mockPrice);
-        console.warn('Price not found in Google Sheets, using fallback:', mockPrice);
-        toast({
-          title: "Внимание",
-          description: "Используется приблизительная цена. Точная цена будет предоставлена менеджером.",
-          variant: "default",
-        });
-      }
-      
-      setStep("result");
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Ошибка",
-        description: "Произошла ошибка при расчете цены.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const calculateMockPrice = (model: string, storage: string): number => {
-    const basePrices: { [key: string]: number } = {
-      "iPhone 13": 47000,
-      "iPhone 13 mini": 42000,
-      "iPhone 13 Pro": 62000,
-      "iPhone 13 Pro Max": 67000,
-      "iPhone 14": 60000,
-      "iPhone 14 Plus": 65000,
-      "iPhone 14 Pro": 77000,
-      "iPhone 14 Pro Max": 85000,
-      "iPhone 15": 72000,
-      "iPhone 15 Plus": 78000,
-      "iPhone 15 Pro": 95000,
-      "iPhone 15 Pro Max": 105000,
-    };
-
-    const storageMultiplier: { [key: string]: number } = {
-      "128GB": 1,
-      "256GB": 1.08,
-      "512GB": 1.15,
-      "1TB": 1.22,
-    };
-
-    return Math.round((basePrices[model] || 50000) * (storageMultiplier[storage] || 1));
-  };
-
-  const handleTimelineSelect = async (timeline: string) => {
+    const updatedData = { ...data, sim };
+    setData(updatedData);
     setIsLoading(true);
     
     try {
       const { error } = await supabase.functions.invoke('save-lead', {
         body: {
-          model: data.model,
-          storage: data.storage,
-          battery: data.battery,
-          scratches: data.scratches,
-          defects: data.defects,
-          sim: data.sim,
-          estimated_price: estimatedPrice,
-          sale_timeline: timeline,
+          model: updatedData.model,
+          storage: updatedData.storage,
+          battery: updatedData.battery,
+          scratches: updatedData.scratches,
+          defects: updatedData.defects,
+          sim: updatedData.sim,
+          estimated_price: 0,
+          sale_timeline: null,
         }
       });
 
@@ -198,12 +144,9 @@ export const PhoneEvaluator = () => {
           description: "Не удалось сохранить данные. Попробуйте позже.",
           variant: "destructive",
         });
-      } else {
-        toast({
-          title: "Успешно!",
-          description: "Ваша заявка принята. Мы свяжемся с вами в ближайшее время.",
-        });
       }
+      
+      setStep("result");
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -225,7 +168,6 @@ export const PhoneEvaluator = () => {
       defects: "",
       sim: "",
     });
-    setEstimatedPrice(0);
     setRejectionReason("");
     setStep("welcome");
   };
@@ -244,8 +186,8 @@ export const PhoneEvaluator = () => {
                   Привет 👋
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-md mx-auto leading-relaxed">
-                  Я помогу быстро оценить твой iPhone.
-                  Ответь на несколько вопросов, и я скажу, сколько мы готовы предложить 💸
+                  Я помогу быстро проверить, подходит ли твой iPhone под условия выкупа.
+                  Ответь на несколько вопросов 📱
                 </p>
               </div>
               <Button 
