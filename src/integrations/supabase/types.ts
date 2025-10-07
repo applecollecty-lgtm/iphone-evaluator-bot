@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       leads: {
         Row: {
+          accessories: string | null
           battery: string
           created_at: string
           defects: string
@@ -28,6 +29,7 @@ export type Database = {
           storage: string
         }
         Insert: {
+          accessories?: string | null
           battery: string
           created_at?: string
           defects: string
@@ -40,6 +42,7 @@ export type Database = {
           storage: string
         }
         Update: {
+          accessories?: string | null
           battery?: string
           created_at?: string
           defects?: string
