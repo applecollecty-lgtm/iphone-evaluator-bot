@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,6 +81,7 @@ export const PhoneEvaluator = () => {
   });
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
 
   const handleStart = () => {
     setStep("model");
@@ -125,8 +127,20 @@ export const PhoneEvaluator = () => {
     setStep("accessories");
   };
 
-  const handleAccessoriesSelect = async (accessories: string) => {
-    const updatedData = { ...data, accessories };
+  const toggleAccessory = (accessory: string) => {
+    setSelectedAccessories(prev => 
+      prev.includes(accessory) 
+        ? prev.filter(item => item !== accessory)
+        : [...prev, accessory]
+    );
+  };
+
+  const handleAccessoriesContinue = async () => {
+    const accessoriesText = selectedAccessories.length > 0 
+      ? selectedAccessories.join(", ") 
+      : "Ничего";
+    
+    const updatedData = { ...data, accessories: accessoriesText };
     setData(updatedData);
     setIsLoading(true);
     
@@ -177,6 +191,7 @@ export const PhoneEvaluator = () => {
       sim: "",
       accessories: "",
     });
+    setSelectedAccessories([]);
     setRejectionReason("");
     setStep("welcome");
   };
@@ -397,57 +412,49 @@ export const PhoneEvaluator = () => {
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold text-foreground">Что есть в комплекте?</h2>
-                <p className="text-muted-foreground">Последний вопрос!</p>
+                <p className="text-muted-foreground">Выбери всё, что есть</p>
               </div>
-              <div className="grid grid-cols-1 gap-3">
-                <Button
-                  onClick={() => handleAccessoriesSelect("Всё (коробка, кабель, чек)")}
-                  variant="outline"
-                  disabled={isLoading}
-                  className="h-auto py-6 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl text-left justify-start"
-                >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                  <div className="space-y-1">
-                    <div className="font-semibold">Полный комплект</div>
-                    <div className="text-sm text-muted-foreground">Коробка, кабель, чек</div>
+              
+              <div className="space-y-4">
+                {["Коробка", "Кабель", "Чек"].map((item) => (
+                  <div
+                    key={item}
+                    onClick={() => toggleAccessory(item)}
+                    className={cn(
+                      "flex items-center space-x-4 p-6 rounded-xl border-2 transition-all duration-200 cursor-pointer",
+                      selectedAccessories.includes(item)
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50 hover:bg-primary/5"
+                    )}
+                  >
+                    <Checkbox
+                      checked={selectedAccessories.includes(item)}
+                      onCheckedChange={() => toggleAccessory(item)}
+                      className="h-6 w-6"
+                    />
+                    <span className="text-lg font-medium">{item}</span>
                   </div>
-                </Button>
+                ))}
+              </div>
+
+              <div className="pt-4 space-y-3">
                 <Button
-                  onClick={() => handleAccessoriesSelect("Коробка и кабель")}
-                  variant="outline"
+                  onClick={handleAccessoriesContinue}
                   disabled={isLoading}
-                  className="h-20 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                  className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
                 >
                   {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                  Коробка и кабель
+                  Продолжить
                 </Button>
-                <Button
-                  onClick={() => handleAccessoriesSelect("Только коробка")}
-                  variant="outline"
+                <Button 
+                  onClick={() => setStep("sim")} 
+                  variant="ghost"
+                  className="w-full"
                   disabled={isLoading}
-                  className="h-20 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
                 >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                  Только коробка
-                </Button>
-                <Button
-                  onClick={() => handleAccessoriesSelect("Ничего")}
-                  variant="outline"
-                  disabled={isLoading}
-                  className="h-20 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
-                >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                  Без комплекта
+                  ← Назад
                 </Button>
               </div>
-              <Button 
-                onClick={() => setStep("sim")} 
-                variant="ghost"
-                className="w-full mt-4"
-                disabled={isLoading}
-              >
-                ← Назад
-              </Button>
             </div>
           )}
 
