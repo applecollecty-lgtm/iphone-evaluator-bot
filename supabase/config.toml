@@ -1,1 +1,7 @@
 project_id = "pujmgrkkuspnbvjjseif"
+
+[functions.get-prices]
+verify_jwt = false
+
+[functions.save-lead]
+verify_jwt = false

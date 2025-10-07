@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight } from "lucide-react";
+import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 type Step = "welcome" | "model" | "storage" | "battery" | "scratches" | "defects" | "sim" | "result" | "rejected";
 
@@ -53,6 +55,7 @@ export const PhoneEvaluator = () => {
   });
   const [estimatedPrice, setEstimatedPrice] = useState<number>(0);
   const [rejectionReason, setRejectionReason] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleStart = () => {
     setStep("model");
@@ -93,16 +96,50 @@ export const PhoneEvaluator = () => {
     setStep("sim");
   };
 
-  const handleSimSelect = (sim: string) => {
+  const handleSimSelect = async (sim: string) => {
     setData({ ...data, sim });
-    // Mock price calculation - в реальности будет из Google Sheets
-    const mockPrice = calculateMockPrice(data.model, data.storage);
-    setEstimatedPrice(mockPrice);
-    setStep("result");
+    setIsLoading(true);
+    
+    try {
+      const { data: pricesData, error } = await supabase.functions.invoke('get-prices');
+      
+      if (error) {
+        console.error('Error fetching prices:', error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось загрузить цены. Попробуйте позже.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const prices = pricesData?.prices || {};
+      const modelPrices = prices[data.model];
+      
+      if (modelPrices && modelPrices[data.storage]) {
+        setEstimatedPrice(modelPrices[data.storage]);
+      } else {
+        // Fallback to mock price if not found in Google Sheets
+        const mockPrice = calculateMockPrice(data.model, data.storage);
+        setEstimatedPrice(mockPrice);
+        console.warn('Price not found in Google Sheets, using fallback');
+      }
+      
+      setStep("result");
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при расчете цены.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const calculateMockPrice = (model: string, storage: string): number => {
-    // Временная логика для демонстрации
     const basePrices: { [key: string]: number } = {
       "iPhone 13": 47000,
       "iPhone 13 mini": 42000,
@@ -126,6 +163,48 @@ export const PhoneEvaluator = () => {
     };
 
     return Math.round((basePrices[model] || 50000) * (storageMultiplier[storage] || 1));
+  };
+
+  const handleTimelineSelect = async (timeline: string) => {
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.functions.invoke('save-lead', {
+        body: {
+          model: data.model,
+          storage: data.storage,
+          battery: data.battery,
+          scratches: data.scratches,
+          defects: data.defects,
+          sim: data.sim,
+          estimated_price: estimatedPrice,
+          sale_timeline: timeline,
+        }
+      });
+
+      if (error) {
+        console.error('Error saving lead:', error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось сохранить данные. Попробуйте позже.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Успешно!",
+          description: "Ваша заявка принята. Мы свяжемся с вами в ближайшее время.",
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при отправке данных.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRestart = () => {
@@ -303,8 +382,10 @@ export const PhoneEvaluator = () => {
                     key={sim}
                     onClick={() => handleSimSelect(sim)}
                     variant="outline"
+                    disabled={isLoading}
                     className="h-20 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
                   >
+                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {sim}
                   </Button>
                 ))}
@@ -333,20 +414,29 @@ export const PhoneEvaluator = () => {
                 <div className="grid grid-cols-1 gap-3">
                   <Button 
                     variant="outline"
+                    onClick={() => handleTimelineSelect("Сегодня/завтра")}
+                    disabled={isLoading}
                     className="h-16 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
                   >
+                    {isLoading && <Loader2 className="w-5 h-5 animate-spin mr-2" />}
                     Сегодня/завтра
                   </Button>
                   <Button 
                     variant="outline"
+                    onClick={() => handleTimelineSelect("В течение недели")}
+                    disabled={isLoading}
                     className="h-16 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
                   >
+                    {isLoading && <Loader2 className="w-5 h-5 animate-spin mr-2" />}
                     В течение недели
                   </Button>
                   <Button 
                     variant="outline"
+                    onClick={() => handleTimelineSelect("Позже")}
+                    disabled={isLoading}
                     className="h-16 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
                   >
+                    {isLoading && <Loader2 className="w-5 h-5 animate-spin mr-2" />}
                     Позже
                   </Button>
                 </div>
