@@ -1,17 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check, MessageCircle, Send } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check, MessageCircle, Send, Moon, Sun, Mic, TrendingUp, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useSwipeable } from "react-swipeable";
 
-type Step = "welcome" | "model" | "storage" | "battery" | "scratches" | "defects" | "sim" | "accessories" | "result" | "rejected";
+type Step = "welcome" | "model" | "storage" | "battery" | "cycles" | "scratches" | "defects" | "sim" | "accessories" | "result" | "rejected";
 
 interface EvaluationData {
   model: string;
   storage: string;
   battery: string;
+  cycles?: string;
   scratches: string;
   defects: string;
   sim: string;
@@ -19,25 +23,31 @@ interface EvaluationData {
 }
 
 const MODELS = [
-  "iPhone 13",
-  "iPhone 13 mini",
-  "iPhone 13 Pro",
-  "iPhone 13 Pro Max",
-  "iPhone 14",
-  "iPhone 14 Plus",
-  "iPhone 14 Pro",
-  "iPhone 14 Pro Max",
-  "iPhone 15",
-  "iPhone 15 Plus",
-  "iPhone 15 Pro",
-  "iPhone 15 Pro Max",
-  "iPhone 16",
-  "iPhone 16 Plus",
-  "iPhone 16 Pro",
-  "iPhone 16 Pro Max",
-  "iPhone 17",
-  "iPhone 17 Pro",
   "iPhone 17 Pro Max",
+  "iPhone 17 Pro",
+  "iPhone 17",
+  "iPhone 16 Pro Max",
+  "iPhone 16 Pro",
+  "iPhone 16 Plus",
+  "iPhone 16",
+  "iPhone 15 Pro Max",
+  "iPhone 15 Pro",
+  "iPhone 15 Plus",
+  "iPhone 15",
+  "iPhone 14 Pro Max",
+  "iPhone 14 Pro",
+  "iPhone 14 Plus",
+  "iPhone 14",
+  "iPhone 13 Pro Max",
+  "iPhone 13 Pro",
+  "iPhone 13 mini",
+  "iPhone 13",
+];
+
+const POPULAR_MODELS = [
+  "iPhone 16 Pro Max",
+  "iPhone 15 Pro Max",
+  "iPhone 16 Pro",
 ];
 
 const UNSUITABLE_MODELS = [
@@ -73,6 +83,7 @@ export const PhoneEvaluator = () => {
     model: "",
     storage: "",
     battery: "",
+    cycles: "",
     scratches: "",
     defects: "",
     sim: "",
@@ -81,6 +92,23 @@ export const PhoneEvaluator = () => {
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [cyclesInput, setCyclesInput] = useState("");
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  const steps: Step[] = ["welcome", "model", "storage", "battery", "cycles", "scratches", "defects", "sim", "accessories", "result"];
+  const currentStepIndex = steps.indexOf(step);
+  const progress = step === "welcome" ? 0 : ((currentStepIndex) / (steps.length - 2)) * 100;
+
+  const needsCyclesStep = (data.model.includes("15") || data.model.includes("16") || data.model.includes("17")) && data.model !== "";
 
   const handleStart = () => {
     setStep("model");
@@ -103,6 +131,15 @@ export const PhoneEvaluator = () => {
       return;
     }
     setData({ ...data, battery });
+    if (needsCyclesStep) {
+      setStep("cycles");
+    } else {
+      setStep("scratches");
+    }
+  };
+
+  const handleCyclesSubmit = () => {
+    setData({ ...data, cycles: cyclesInput });
     setStep("scratches");
   };
 
@@ -149,6 +186,7 @@ export const PhoneEvaluator = () => {
           model: updatedData.model,
           storage: updatedData.storage,
           battery: updatedData.battery,
+          cycles: updatedData.cycles,
           scratches: updatedData.scratches,
           defects: updatedData.defects,
           sim: updatedData.sim,
@@ -185,6 +223,7 @@ export const PhoneEvaluator = () => {
       model: "",
       storage: "",
       battery: "",
+      cycles: "",
       scratches: "",
       defects: "",
       sim: "",
@@ -192,379 +231,565 @@ export const PhoneEvaluator = () => {
     });
     setSelectedAccessories([]);
     setRejectionReason("");
+    setCyclesInput("");
     setStep("welcome");
   };
 
+  const goBack = () => {
+    const stepMap: Record<Step, Step> = {
+      welcome: "welcome",
+      model: "welcome",
+      storage: "model",
+      battery: "storage",
+      cycles: "battery",
+      scratches: needsCyclesStep ? "cycles" : "battery",
+      defects: "scratches",
+      sim: "defects",
+      accessories: "sim",
+      result: "accessories",
+      rejected: "welcome",
+    };
+    setStep(stepMap[step]);
+  };
+
+  const startVoiceInput = () => {
+    if (!('webkitSpeechRecognition' in window)) {
+      toast({
+        title: "Не поддерживается",
+        description: "Ваш браузер не поддерживает голосовой ввод",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const recognition = new (window as any).webkitSpeechRecognition();
+    recognition.lang = 'ru-RU';
+    recognition.continuous = false;
+    
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      toast({
+        title: "Распознано",
+        description: transcript,
+      });
+    };
+
+    recognition.start();
+  };
+
+  const handlers = useSwipeable({
+    onSwipedLeft: () => {
+      // Свайп влево - вперед (но мы не можем пропускать шаги)
+    },
+    onSwipedRight: () => {
+      // Свайп вправо - назад
+      if (step !== "welcome" && step !== "result" && step !== "rejected") {
+        goBack();
+      }
+    },
+    trackMouse: false,
+  });
+
+  // Превью текущих данных
+  const hasData = data.model || data.storage || data.battery;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl shadow-elevated bg-gradient-to-br from-card to-card/95 border-border/50">
-        <div className="p-8 md:p-12">
-          {step === "welcome" && (
-            <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent">
-                <Smartphone className="w-10 h-10 text-primary-foreground" />
-              </div>
-              <div className="space-y-3">
-                <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-                  Привет 👋
-                </h1>
-                <p className="text-xl text-muted-foreground max-w-md mx-auto leading-relaxed">
-                  Я помогу быстро проверить, подходит ли твой iPhone под условия выкупа.
-                  Ответь на несколько вопросов 📱
-                </p>
-              </div>
-              <Button 
-                onClick={handleStart} 
-                size="lg"
-                className="mt-4 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg px-8 py-6 rounded-2xl shadow-lg"
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex flex-col">
+      {/* Липкий прогресс-бар */}
+      {step !== "welcome" && step !== "result" && step !== "rejected" && (
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50 p-4">
+          <div className="max-w-2xl mx-auto space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-muted-foreground">
+                Шаг {currentStepIndex} из {steps.length - 2}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="h-9 w-9"
               >
-                Начать оценку
-                <ChevronRight className="ml-2 w-5 h-5" />
+                {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
             </div>
-          )}
+            <Progress value={progress} className="h-2" />
+          </div>
+        </div>
+      )}
 
-          {step === "model" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-foreground">Выбери модель iPhone</h2>
-                <p className="text-muted-foreground">Мы выкупаем модели начиная с iPhone 13</p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {MODELS.map((model) => (
-                  <Button
-                    key={model}
-                    onClick={() => handleModelSelect(model)}
-                    variant="outline"
-                    className="h-auto py-4 px-6 text-left justify-start hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+      <div className="flex-1 flex items-center justify-center p-4" {...handlers}>
+        <Card className="w-full max-w-2xl shadow-elevated bg-gradient-to-br from-card to-card/95 border-border/50">
+          <div className="p-6 md:p-12">
+            {step === "welcome" && (
+              <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent">
+                  <Smartphone className="w-10 h-10 text-primary-foreground" />
+                </div>
+                <div className="space-y-3">
+                  <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+                    Привет 👋
+                  </h1>
+                  <p className="text-xl text-muted-foreground max-w-md mx-auto leading-relaxed">
+                    Я помогу быстро проверить, подходит ли твой iPhone под условия выкупа.
+                    Ответь на несколько вопросов 📱
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <Button 
+                    onClick={handleStart} 
+                    className="w-full h-14 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg rounded-2xl shadow-lg"
                   >
-                    <Smartphone className="mr-3 w-5 h-5 text-primary" />
-                    <span className="font-medium">{model}</span>
+                    Начать оценку
+                    <ChevronRight className="ml-2 w-5 h-5" />
                   </Button>
-                ))}
-              </div>
-              <Button 
-                onClick={() => setStep("welcome")} 
-                variant="ghost"
-                className="w-full mt-4"
-              >
-                ← Назад
-              </Button>
-            </div>
-          )}
-
-          {step === "storage" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-foreground">Объем памяти</h2>
-                <p className="text-muted-foreground">Модель: {data.model}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {STORAGE_OPTIONS.map((storage) => (
                   <Button
-                    key={storage}
-                    onClick={() => handleStorageSelect(storage)}
                     variant="outline"
-                    className="h-24 text-xl font-semibold hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    className="w-full h-14"
                   >
-                    {storage}
+                    {isDarkMode ? <Sun className="mr-2 h-5 w-5" /> : <Moon className="mr-2 h-5 w-5" />}
+                    {isDarkMode ? "Светлая тема" : "Темная тема"}
                   </Button>
-                ))}
+                </div>
               </div>
-              <Button 
-                onClick={() => setStep("model")} 
-                variant="ghost"
-                className="w-full mt-4"
-              >
-                ← Назад
-              </Button>
-            </div>
-          )}
+            )}
 
-          {step === "battery" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                  <Battery className="w-8 h-8 text-primary" />
-                  Состояние аккумулятора
-                </h2>
-                <p className="text-muted-foreground">Выбери ёмкость батареи в процентах</p>
-              </div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {BATTERY_OPTIONS.map((battery) => (
-                  <Button
-                    key={battery}
-                    onClick={() => handleBatterySelect(battery)}
-                    variant="outline"
-                    className={cn(
-                      "h-16 font-medium hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl",
-                      battery === "Ниже 85%" && "text-destructive hover:bg-destructive/10 hover:border-destructive"
-                    )}
-                  >
-                    {battery}
-                  </Button>
-                ))}
-              </div>
-              <Button 
-                onClick={() => setStep("storage")} 
-                variant="ghost"
-                className="w-full mt-4"
-              >
-                ← Назад
-              </Button>
-            </div>
-          )}
-
-          {step === "scratches" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-foreground">Есть царапины на корпусе или экране?</h2>
-                <p className="text-muted-foreground">Будь честен, это важно для оценки</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Button
-                  onClick={() => handleScratchesSelect("Да")}
-                  variant="outline"
-                  className="h-32 text-xl hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
-                >
-                  Да
-                </Button>
-                <Button
-                  onClick={() => handleScratchesSelect("Нет")}
-                  variant="outline"
-                  className="h-32 text-xl hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
-                >
-                  Нет
-                </Button>
-              </div>
-              <Button 
-                onClick={() => setStep("battery")} 
-                variant="ghost"
-                className="w-full mt-4"
-              >
-                ← Назад
-              </Button>
-            </div>
-          )}
-
-          {step === "defects" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-foreground">Есть дефекты, нерабочие функции или замены деталей?</h2>
-                <p className="text-muted-foreground">Например: не работает камера, менялся экран и т.д.</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Button
-                  onClick={() => handleDefectsSelect("Да")}
-                  variant="outline"
-                  className="h-32 text-xl hover:bg-destructive/10 hover:border-destructive text-destructive transition-all duration-200 rounded-xl"
-                >
-                  Да
-                </Button>
-                <Button
-                  onClick={() => handleDefectsSelect("Нет")}
-                  variant="outline"
-                  className="h-32 text-xl hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
-                >
-                  Нет
-                </Button>
-              </div>
-              <Button 
-                onClick={() => setStep("scratches")} 
-                variant="ghost"
-                className="w-full mt-4"
-              >
-                ← Назад
-              </Button>
-            </div>
-          )}
-
-          {step === "sim" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-foreground">Какая версия SIM-карт?</h2>
-                <p className="text-muted-foreground">Почти закончили!</p>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                {SIM_OPTIONS.map((sim) => (
-                  <Button
-                    key={sim}
-                    onClick={() => handleSimSelect(sim)}
-                    variant="outline"
-                    className="h-20 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
-                  >
-                    {sim}
-                  </Button>
-                ))}
-              </div>
-              <Button 
-                onClick={() => setStep("defects")} 
-                variant="ghost"
-                className="w-full mt-4"
-              >
-                ← Назад
-              </Button>
-            </div>
-          )}
-
-          {step === "accessories" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-foreground">Что есть в комплекте?</h2>
-                <p className="text-muted-foreground">Выбери всё, что есть</p>
-              </div>
-              
-              <div className="space-y-4">
-                {["Коробка", "Кабель", "Чек"].map((item) => (
-                  <div
-                    key={item}
-                    onClick={() => toggleAccessory(item)}
-                    className={cn(
-                      "flex items-center space-x-4 p-6 rounded-xl border-2 transition-all duration-200 cursor-pointer",
-                      selectedAccessories.includes(item)
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50 hover:bg-primary/5"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "h-6 w-6 rounded border-2 flex items-center justify-center transition-colors",
-                        selectedAccessories.includes(item)
-                          ? "border-primary bg-primary"
-                          : "border-muted-foreground"
-                      )}
+            {step === "model" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold text-foreground flex items-center justify-between">
+                    Выбери модель iPhone
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={startVoiceInput}
+                      className={cn("h-10 w-10", isListening && "text-primary animate-pulse")}
                     >
-                      {selectedAccessories.includes(item) && (
-                        <Check className="h-4 w-4 text-primary-foreground" />
-                      )}
-                    </div>
-                    <span className="text-lg font-medium">{item}</span>
-                  </div>
-                ))}
-              </div>
+                      <Mic className="h-5 w-5" />
+                    </Button>
+                  </h2>
+                  <p className="text-muted-foreground">Мы выкупаем модели начиная с iPhone 13</p>
+                </div>
 
-              <div className="pt-4 space-y-3">
-                <Button
-                  onClick={handleAccessoriesContinue}
-                  disabled={isLoading}
-                  className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
-                >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                  Продолжить
-                </Button>
+                {/* Популярные модели */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Популярные модели</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    {POPULAR_MODELS.map((model) => (
+                      <Button
+                        key={model}
+                        onClick={() => handleModelSelect(model)}
+                        variant="outline"
+                        className="h-16 px-6 text-left justify-start hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl bg-primary/5 border-primary/30"
+                      >
+                        <Zap className="mr-3 w-6 h-6 text-primary" />
+                        <span className="font-semibold text-lg">{model}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Все модели */}
+                <div className="space-y-3">
+                  <div className="text-sm font-semibold text-muted-foreground">Все модели</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {MODELS.map((model) => (
+                      <Button
+                        key={model}
+                        onClick={() => handleModelSelect(model)}
+                        variant="outline"
+                        className="h-14 px-6 text-left justify-start hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                      >
+                        <Smartphone className="mr-3 w-5 h-5 text-primary" />
+                        <span className="font-medium">{model}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
                 <Button 
-                  onClick={() => setStep("sim")} 
+                  onClick={goBack}
                   variant="ghost"
-                  className="w-full"
-                  disabled={isLoading}
+                  className="w-full h-14"
                 >
                   ← Назад
                 </Button>
               </div>
-            </div>
-          )}
+            )}
 
-          {step === "result" && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-              <div className="text-center space-y-4">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent">
-                  <CheckCircle2 className="w-10 h-10 text-primary-foreground" />
+            {step === "storage" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold text-foreground">Объем памяти</h2>
+                  <p className="text-muted-foreground">Модель: {data.model}</p>
                 </div>
-                <h2 className="text-3xl font-bold text-foreground">Отлично! 🎉</h2>
-              </div>
-
-              <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-8 space-y-6 border border-primary/20">
-                <div className="text-center space-y-3">
-                  <p className="text-xl font-semibold text-foreground">Ваш iPhone подходит под условия выкупа!</p>
-                  <p className="text-lg text-muted-foreground">
-                    Для получения точной оценки и оформления выкупа свяжитесь с нашим менеджером
-                  </p>
-                </div>
-
-                <div className="bg-background/50 rounded-xl p-6 space-y-2">
-                  <p className="text-sm text-muted-foreground">Ваши данные:</p>
-                  <div className="space-y-1">
-                    <p className="font-medium">• Модель: {data.model}</p>
-                    <p className="font-medium">• Память: {data.storage}</p>
-                    <p className="font-medium">• Батарея: {data.battery}</p>
-                    <p className="font-medium">• Царапины: {data.scratches}</p>
-                    <p className="font-medium">• SIM: {data.sim}</p>
-                    <p className="font-medium">• Комплект: {data.accessories}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3 pt-4">
-                  <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
+                  {STORAGE_OPTIONS.map((storage) => (
                     <Button
-                      onClick={() => {
-                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
-                        const encodedMessage = encodeURIComponent(message);
-                        window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
-                      }}
-                      className="h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
+                      key={storage}
+                      onClick={() => handleStorageSelect(storage)}
+                      variant="outline"
+                      className="h-28 text-2xl font-bold hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-2xl border-2"
                     >
-                      <MessageCircle className="mr-2 h-5 w-5" />
-                      WhatsApp
+                      {storage}
                     </Button>
-                    <Button
-                      onClick={() => {
-                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
-                        const encodedMessage = encodeURIComponent(message);
-                        window.open(`https://t.me/+79375723173?text=${encodedMessage}`, '_blank');
-                      }}
-                      className="h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
-                    >
-                      <Send className="mr-2 h-5 w-5" />
-                      Telegram
-                    </Button>
-                  </div>
-                  <p className="text-center text-sm text-muted-foreground">
-                    Менеджер свяжется с вами в ближайшее время
-                  </p>
+                  ))}
                 </div>
-              </div>
-
-              <Button 
-                onClick={handleRestart} 
-                variant="ghost"
-                className="w-full"
-              >
-                Начать новую оценку
-              </Button>
-            </div>
-          )}
-
-          {step === "rejected" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-              <div className="text-center space-y-4">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-destructive/20">
-                  <AlertCircle className="w-10 h-10 text-destructive" />
-                </div>
-                <h2 className="text-3xl font-bold text-foreground">К сожалению...</h2>
-              </div>
-
-              <div className="bg-destructive/10 rounded-2xl p-8 text-center border border-destructive/20">
-                <p className="text-lg text-foreground whitespace-pre-line leading-relaxed">
-                  {rejectionReason}
-                </p>
-              </div>
-
-              <div className="text-center space-y-4 pt-4">
-                <p className="text-muted-foreground">
-                  Мы выкупаем модели начиная с iPhone 13,<br />
-                  с АКБ от 85% и без дефектов
-                </p>
                 <Button 
-                  onClick={handleRestart}
-                  className="mt-4 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
+                  onClick={goBack}
+                  variant="ghost"
+                  className="w-full h-14"
                 >
-                  Попробовать снова
+                  ← Назад
                 </Button>
               </div>
+            )}
+
+            {step === "battery" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
+                    <Battery className="w-8 h-8 text-primary" />
+                    Состояние аккумулятора
+                  </h2>
+                  <p className="text-muted-foreground">Выбери ёмкость батареи в процентах</p>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {BATTERY_OPTIONS.map((battery) => (
+                    <Button
+                      key={battery}
+                      onClick={() => handleBatterySelect(battery)}
+                      variant="outline"
+                      className={cn(
+                        "h-14 font-medium hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl",
+                        battery === "Ниже 85%" && "text-destructive hover:bg-destructive/10 hover:border-destructive"
+                      )}
+                    >
+                      {battery}
+                    </Button>
+                  ))}
+                </div>
+                <Button 
+                  onClick={goBack}
+                  variant="ghost"
+                  className="w-full h-14"
+                >
+                  ← Назад
+                </Button>
+              </div>
+            )}
+
+            {step === "cycles" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
+                    <Battery className="w-8 h-8 text-primary" />
+                    Количество циклов зарядки
+                  </h2>
+                  <p className="text-muted-foreground">Для моделей iPhone 15 и новее это важно</p>
+                </div>
+                <div className="space-y-4">
+                  <Input
+                    type="number"
+                    placeholder="Введите количество циклов"
+                    value={cyclesInput}
+                    onChange={(e) => setCyclesInput(e.target.value)}
+                    className="h-14 text-lg"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    📱 Найти в: Настройки → Основные → Об этом устройстве → Аккумулятор
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleCyclesSubmit}
+                  disabled={!cyclesInput}
+                  className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
+                >
+                  Продолжить
+                </Button>
+                <Button 
+                  onClick={goBack}
+                  variant="ghost"
+                  className="w-full h-14"
+                >
+                  ← Назад
+                </Button>
+              </div>
+            )}
+
+            {step === "scratches" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold text-foreground">Есть царапины на корпусе или экране?</h2>
+                  <p className="text-muted-foreground">Будь честен, это важно для оценки</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Button
+                    onClick={() => handleScratchesSelect("Да")}
+                    variant="outline"
+                    className="h-32 text-xl hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                  >
+                    Да
+                  </Button>
+                  <Button
+                    onClick={() => handleScratchesSelect("Нет")}
+                    variant="outline"
+                    className="h-32 text-xl hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                  >
+                    Нет
+                  </Button>
+                </div>
+                <Button 
+                  onClick={goBack}
+                  variant="ghost"
+                  className="w-full h-14"
+                >
+                  ← Назад
+                </Button>
+              </div>
+            )}
+
+            {step === "defects" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold text-foreground">Есть дефекты, нерабочие функции или замены деталей?</h2>
+                  <p className="text-muted-foreground">Например: не работает камера, менялся экран и т.д.</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Button
+                    onClick={() => handleDefectsSelect("Да")}
+                    variant="outline"
+                    className="h-32 text-xl hover:bg-destructive/10 hover:border-destructive text-destructive transition-all duration-200 rounded-xl"
+                  >
+                    Да
+                  </Button>
+                  <Button
+                    onClick={() => handleDefectsSelect("Нет")}
+                    variant="outline"
+                    className="h-32 text-xl hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                  >
+                    Нет
+                  </Button>
+                </div>
+                <Button 
+                  onClick={goBack}
+                  variant="ghost"
+                  className="w-full h-14"
+                >
+                  ← Назад
+                </Button>
+              </div>
+            )}
+
+            {step === "sim" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold text-foreground">Какая версия SIM-карт?</h2>
+                  <p className="text-muted-foreground">Почти закончили!</p>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  {SIM_OPTIONS.map((sim) => (
+                    <Button
+                      key={sim}
+                      onClick={() => handleSimSelect(sim)}
+                      variant="outline"
+                      className="h-20 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                    >
+                      {sim}
+                    </Button>
+                  ))}
+                </div>
+                <Button 
+                  onClick={goBack}
+                  variant="ghost"
+                  className="w-full h-14"
+                >
+                  ← Назад
+                </Button>
+              </div>
+            )}
+
+            {step === "accessories" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold text-foreground">Что есть в комплекте?</h2>
+                  <p className="text-muted-foreground">Выбери всё, что есть</p>
+                </div>
+                
+                <div className="space-y-4">
+                  {["Коробка", "Кабель", "Чек"].map((item) => (
+                    <div
+                      key={item}
+                      onClick={() => toggleAccessory(item)}
+                      className={cn(
+                        "flex items-center space-x-4 p-6 rounded-xl border-2 transition-all duration-200 cursor-pointer",
+                        selectedAccessories.includes(item)
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-primary/50 hover:bg-primary/5"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "h-6 w-6 rounded border-2 flex items-center justify-center transition-colors",
+                          selectedAccessories.includes(item)
+                            ? "border-primary bg-primary"
+                            : "border-muted-foreground"
+                        )}
+                      >
+                        {selectedAccessories.includes(item) && (
+                          <Check className="h-4 w-4 text-primary-foreground" />
+                        )}
+                      </div>
+                      <span className="text-lg font-medium">{item}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-4 space-y-3">
+                  <Button
+                    onClick={handleAccessoriesContinue}
+                    disabled={isLoading}
+                    className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
+                  >
+                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                    Продолжить
+                  </Button>
+                  <Button 
+                    onClick={goBack}
+                    variant="ghost"
+                    className="w-full h-14"
+                    disabled={isLoading}
+                  >
+                    ← Назад
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {step === "result" && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent">
+                    <CheckCircle2 className="w-10 h-10 text-primary-foreground" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-foreground">Отлично! 🎉</h2>
+                </div>
+
+                <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-8 space-y-6 border border-primary/20">
+                  <div className="text-center space-y-3">
+                    <p className="text-xl font-semibold text-foreground">Ваш iPhone подходит под условия выкупа!</p>
+                    <p className="text-lg text-muted-foreground">
+                      Для получения точной оценки и оформления выкупа свяжитесь с нашим менеджером
+                    </p>
+                  </div>
+
+                  <div className="bg-background/50 rounded-xl p-6 space-y-2">
+                    <p className="text-sm text-muted-foreground">Ваши данные:</p>
+                    <div className="space-y-1">
+                      <p className="font-medium">• Модель: {data.model}</p>
+                      <p className="font-medium">• Память: {data.storage}</p>
+                      <p className="font-medium">• Батарея: {data.battery}</p>
+                      {data.cycles && <p className="font-medium">• Циклы зарядки: {data.cycles}</p>}
+                      <p className="font-medium">• Царапины: {data.scratches}</p>
+                      <p className="font-medium">• SIM: {data.sim}</p>
+                      <p className="font-medium">• Комплект: {data.accessories}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 pt-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        onClick={() => {
+                          const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}${data.cycles ? `\nЦиклы: ${data.cycles}` : ''}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
+                          const encodedMessage = encodeURIComponent(message);
+                          window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
+                        }}
+                        className="h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
+                      >
+                        <MessageCircle className="mr-2 h-5 w-5" />
+                        WhatsApp
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}${data.cycles ? `\nЦиклы: ${data.cycles}` : ''}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
+                          const encodedMessage = encodeURIComponent(message);
+                          window.open(`https://t.me/+79375723173?text=${encodedMessage}`, '_blank');
+                        }}
+                        className="h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
+                      >
+                        <Send className="mr-2 h-5 w-5" />
+                        Telegram
+                      </Button>
+                    </div>
+                    <p className="text-center text-sm text-muted-foreground">
+                      Менеджер свяжется с вами в ближайшее время
+                    </p>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handleRestart} 
+                  variant="ghost"
+                  className="w-full h-14"
+                >
+                  Начать новую оценку
+                </Button>
+              </div>
+            )}
+
+            {step === "rejected" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-destructive/20">
+                    <AlertCircle className="w-10 h-10 text-destructive" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-foreground">К сожалению...</h2>
+                </div>
+
+                <div className="bg-destructive/10 rounded-2xl p-8 text-center border border-destructive/20">
+                  <p className="text-lg text-foreground whitespace-pre-line leading-relaxed">
+                    {rejectionReason}
+                  </p>
+                </div>
+
+                <div className="text-center space-y-4 pt-4">
+                  <p className="text-muted-foreground">
+                    Мы выкупаем модели начиная с iPhone 13,<br />
+                    с АКБ от 85% и без дефектов
+                  </p>
+                  <Button 
+                    onClick={handleRestart}
+                    className="mt-4 h-14 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
+                  >
+                    Попробовать снова
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {/* Превью результата снизу */}
+      {hasData && step !== "welcome" && step !== "result" && step !== "rejected" && (
+        <div className="sticky bottom-0 z-40 bg-gradient-to-t from-background via-background to-background/90 backdrop-blur-sm border-t border-border/50 p-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-card/50 rounded-xl p-4 space-y-2 border border-primary/20">
+              <p className="text-xs font-semibold text-primary">Текущий выбор:</p>
+              <div className="flex flex-wrap gap-2 text-sm">
+                {data.model && <span className="bg-primary/10 text-primary px-2 py-1 rounded">📱 {data.model}</span>}
+                {data.storage && <span className="bg-primary/10 text-primary px-2 py-1 rounded">💾 {data.storage}</span>}
+                {data.battery && <span className="bg-primary/10 text-primary px-2 py-1 rounded">🔋 {data.battery}</span>}
+              </div>
             </div>
-          )}
+          </div>
         </div>
-      </Card>
+      )}
     </div>
   );
 };
