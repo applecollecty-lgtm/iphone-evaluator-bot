@@ -396,55 +396,45 @@ export const PhoneEvaluator = () => {
                 <h2 className="text-3xl font-bold text-foreground">Отлично! 🎉</h2>
               </div>
 
-              <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-8 text-center space-y-4 border border-primary/20">
-                <p className="text-lg text-muted-foreground">Актуальная оценка на сегодня/завтра:</p>
-                <p className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {estimatedPrice.toLocaleString('ru-RU')} ₽
-                </p>
-              </div>
+              <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-8 space-y-6 border border-primary/20">
+                <div className="text-center space-y-3">
+                  <p className="text-xl font-semibold text-foreground">Ваш iPhone подходит под условия выкупа!</p>
+                  <p className="text-lg text-muted-foreground">
+                    Для получения точной оценки и оформления выкупа свяжитесь с нашим менеджером
+                  </p>
+                </div>
 
-              <div className="space-y-3">
-                <p className="text-center text-lg font-medium text-foreground">Когда планировал продать?</p>
-                <div className="grid grid-cols-1 gap-3">
-                  <Button 
-                    variant="outline"
-                    onClick={() => handleTimelineSelect("Сегодня/завтра")}
-                    disabled={isLoading}
-                    className="h-16 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                <div className="bg-background/50 rounded-xl p-6 space-y-2">
+                  <p className="text-sm text-muted-foreground">Ваши данные:</p>
+                  <div className="space-y-1">
+                    <p className="font-medium">• Модель: {data.model}</p>
+                    <p className="font-medium">• Память: {data.storage}</p>
+                    <p className="font-medium">• Батарея: {data.battery}</p>
+                    <p className="font-medium">• Царапины: {data.scratches}</p>
+                    <p className="font-medium">• SIM: {data.sim}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-4">
+                  <Button
+                    onClick={() => window.open('https://wa.me/YOUR_PHONE_NUMBER', '_blank')}
+                    className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
                   >
-                    {isLoading && <Loader2 className="w-5 h-5 animate-spin mr-2" />}
-                    Сегодня/завтра
+                    Связаться с менеджером
                   </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => handleTimelineSelect("В течение недели")}
-                    disabled={isLoading}
-                    className="h-16 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
-                  >
-                    {isLoading && <Loader2 className="w-5 h-5 animate-spin mr-2" />}
-                    В течение недели
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => handleTimelineSelect("Позже")}
-                    disabled={isLoading}
-                    className="h-16 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
-                  >
-                    {isLoading && <Loader2 className="w-5 h-5 animate-spin mr-2" />}
-                    Позже
-                  </Button>
+                  <p className="text-center text-sm text-muted-foreground">
+                    Менеджер свяжется с вами в ближайшее время
+                  </p>
                 </div>
               </div>
 
-              <div className="pt-4">
-                <Button 
-                  onClick={handleRestart}
-                  variant="ghost"
-                  className="w-full"
-                >
-                  Начать новую оценку
-                </Button>
-              </div>
+              <Button 
+                onClick={handleRestart} 
+                variant="ghost"
+                className="w-full"
+              >
+                Начать новую оценку
+              </Button>
             </div>
           )}
 
