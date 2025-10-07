@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check, MessageCircle, Send, Moon, Sun, Mic, TrendingUp, Zap } from "lucide-react";
+import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check, MessageCircle, Send, Mic, TrendingUp, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -92,17 +92,12 @@ export const PhoneEvaluator = () => {
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [cyclesInput, setCyclesInput] = useState("");
 
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
+    document.documentElement.classList.add('dark');
+  }, []);
 
   const steps: Step[] = ["welcome", "model", "storage", "battery", "cycles", "scratches", "defects", "sim", "accessories", "result"];
   const currentStepIndex = steps.indexOf(step);
@@ -306,14 +301,6 @@ export const PhoneEvaluator = () => {
               <span className="text-sm font-medium text-muted-foreground">
                 Шаг {currentStepIndex} из {steps.length - 2}
               </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className="h-9 w-9"
-              >
-                {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
             </div>
             <Progress value={progress} className="h-2" />
           </div>
@@ -337,23 +324,13 @@ export const PhoneEvaluator = () => {
                     Ответь на несколько вопросов 📱
                   </p>
                 </div>
-                <div className="space-y-3">
-                  <Button 
-                    onClick={handleStart} 
-                    className="w-full h-14 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg rounded-2xl shadow-lg"
-                  >
-                    Начать оценку
-                    <ChevronRight className="ml-2 w-5 h-5" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsDarkMode(!isDarkMode)}
-                    className="w-full h-14"
-                  >
-                    {isDarkMode ? <Sun className="mr-2 h-5 w-5" /> : <Moon className="mr-2 h-5 w-5" />}
-                    {isDarkMode ? "Светлая тема" : "Темная тема"}
-                  </Button>
-                </div>
+                <Button 
+                  onClick={handleStart} 
+                  className="w-full h-14 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg rounded-2xl shadow-lg"
+                >
+                  Начать оценку
+                  <ChevronRight className="ml-2 w-5 h-5" />
+                </Button>
               </div>
             )}
 
@@ -732,13 +709,22 @@ export const PhoneEvaluator = () => {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={handleRestart} 
-                  variant="ghost"
-                  className="w-full h-14"
-                >
-                  Начать новую оценку
-                </Button>
+                <div className="space-y-3">
+                  <Button 
+                    onClick={() => setStep("accessories")}
+                    variant="ghost"
+                    className="w-full h-14"
+                  >
+                    ← Назад
+                  </Button>
+                  <Button 
+                    onClick={handleRestart} 
+                    variant="outline"
+                    className="w-full h-14"
+                  >
+                    Начать новую оценку
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -785,6 +771,7 @@ export const PhoneEvaluator = () => {
                 {data.model && <span className="bg-primary/10 text-primary px-2 py-1 rounded">📱 {data.model}</span>}
                 {data.storage && <span className="bg-primary/10 text-primary px-2 py-1 rounded">💾 {data.storage}</span>}
                 {data.battery && <span className="bg-primary/10 text-primary px-2 py-1 rounded">🔋 {data.battery}</span>}
+                {data.cycles && <span className="bg-primary/10 text-primary px-2 py-1 rounded">🔄 {data.cycles} циклов</span>}
               </div>
             </div>
           </div>
