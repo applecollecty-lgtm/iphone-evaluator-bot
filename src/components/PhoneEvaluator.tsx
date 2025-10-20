@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useSwipeable } from "react-swipeable";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/eoffer-logo.jpg";
 
 type Step = "welcome" | "model" | "storage" | "battery" | "scratches" | "defects" | "sim" | "accessories" | "result" | "rejected";
 
@@ -293,30 +293,33 @@ export const PhoneEvaluator = () => {
         <Card className="w-full max-w-2xl shadow-elevated bg-gradient-to-br from-card to-card/95 border-border/50">
           <div className="p-6 md:p-12">
             {step === "welcome" && (
-              <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex flex-col items-center space-y-4">
-                  <img src={logo} alt="eOffer" className="w-24 h-24 rounded-2xl object-cover shadow-lg" />
-                  <div className="space-y-2">
-                    <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                      eOffer
-                    </h1>
-                    <p className="text-lg text-muted-foreground">
+              <div className="text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex flex-col items-center space-y-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse"></div>
+                    <img 
+                      src={logo} 
+                      alt="eOffer" 
+                      className="relative w-32 h-32 object-contain drop-shadow-2xl"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-primary tracking-wider uppercase">
                       Сервис выкупа iPhone
                     </p>
                   </div>
                 </div>
-                <div className="space-y-3 pt-2">
-                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                    Привет 👋
+                <div className="space-y-4 pt-2">
+                  <h2 className="text-3xl md:text-4xl font-bold text-foreground leading-tight">
+                    Узнай стоимость<br />своего iPhone 👋
                   </h2>
-                  <p className="text-xl text-muted-foreground max-w-md mx-auto leading-relaxed">
-                    Я помогу быстро проверить, подходит ли твой iPhone под условия выкупа.
-                    Ответь на несколько вопросов 📱
+                  <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
+                    Ответь на несколько вопросов и получи предварительную оценку за минуту
                   </p>
                 </div>
                 <Button 
                   onClick={handleStart} 
-                  className="w-full h-14 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg rounded-2xl shadow-lg"
+                  className="w-full h-16 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Начать оценку
                   <ChevronRight className="ml-2 w-5 h-5" />
