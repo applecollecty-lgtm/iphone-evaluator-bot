@@ -2,20 +2,19 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
-import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check, MessageCircle, Send, Mic, TrendingUp, Zap } from "lucide-react";
+import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check, MessageCircle, Mic, TrendingUp, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useSwipeable } from "react-swipeable";
+import logo from "@/assets/logo.jpg";
 
-type Step = "welcome" | "model" | "storage" | "battery" | "cycles" | "scratches" | "defects" | "sim" | "accessories" | "result" | "rejected";
+type Step = "welcome" | "model" | "storage" | "battery" | "scratches" | "defects" | "sim" | "accessories" | "result" | "rejected";
 
 interface EvaluationData {
   model: string;
   storage: string;
   battery: string;
-  cycles?: string;
   scratches: string;
   defects: string;
   sim: string;
@@ -83,7 +82,6 @@ export const PhoneEvaluator = () => {
     model: "",
     storage: "",
     battery: "",
-    cycles: "",
     scratches: "",
     defects: "",
     sim: "",
@@ -93,17 +91,14 @@ export const PhoneEvaluator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
-  const [cyclesInput, setCyclesInput] = useState("");
 
   useEffect(() => {
     document.documentElement.classList.add('dark');
   }, []);
 
-  const steps: Step[] = ["welcome", "model", "storage", "battery", "cycles", "scratches", "defects", "sim", "accessories", "result"];
+  const steps: Step[] = ["welcome", "model", "storage", "battery", "scratches", "defects", "sim", "accessories", "result"];
   const currentStepIndex = steps.indexOf(step);
   const progress = step === "welcome" ? 0 : ((currentStepIndex) / (steps.length - 2)) * 100;
-
-  const needsCyclesStep = (data.model.includes("15") || data.model.includes("16") || data.model.includes("17")) && data.model !== "";
 
   const handleStart = () => {
     setStep("model");
@@ -126,15 +121,6 @@ export const PhoneEvaluator = () => {
       return;
     }
     setData({ ...data, battery });
-    if (needsCyclesStep) {
-      setStep("cycles");
-    } else {
-      setStep("scratches");
-    }
-  };
-
-  const handleCyclesSubmit = () => {
-    setData({ ...data, cycles: cyclesInput });
     setStep("scratches");
   };
 
@@ -181,7 +167,6 @@ export const PhoneEvaluator = () => {
           model: updatedData.model,
           storage: updatedData.storage,
           battery: updatedData.battery,
-          cycles: updatedData.cycles,
           scratches: updatedData.scratches,
           defects: updatedData.defects,
           sim: updatedData.sim,
@@ -218,7 +203,6 @@ export const PhoneEvaluator = () => {
       model: "",
       storage: "",
       battery: "",
-      cycles: "",
       scratches: "",
       defects: "",
       sim: "",
@@ -226,7 +210,6 @@ export const PhoneEvaluator = () => {
     });
     setSelectedAccessories([]);
     setRejectionReason("");
-    setCyclesInput("");
     setStep("welcome");
   };
 
@@ -236,8 +219,7 @@ export const PhoneEvaluator = () => {
       model: "welcome",
       storage: "model",
       battery: "storage",
-      cycles: "battery",
-      scratches: needsCyclesStep ? "cycles" : "battery",
+      scratches: "battery",
       defects: "scratches",
       sim: "defects",
       accessories: "sim",
@@ -312,13 +294,21 @@ export const PhoneEvaluator = () => {
           <div className="p-6 md:p-12">
             {step === "welcome" && (
               <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent">
-                  <Smartphone className="w-10 h-10 text-primary-foreground" />
+                <div className="flex flex-col items-center space-y-4">
+                  <img src={logo} alt="eOffer" className="w-24 h-24 rounded-2xl object-cover shadow-lg" />
+                  <div className="space-y-2">
+                    <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                      eOffer
+                    </h1>
+                    <p className="text-lg text-muted-foreground">
+                      Сервис выкупа iPhone
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+                <div className="space-y-3 pt-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">
                     Привет 👋
-                  </h1>
+                  </h2>
                   <p className="text-xl text-muted-foreground max-w-md mx-auto leading-relaxed">
                     Я помогу быстро проверить, подходит ли твой iPhone под условия выкупа.
                     Ответь на несколько вопросов 📱
@@ -451,44 +441,6 @@ export const PhoneEvaluator = () => {
                     </Button>
                   ))}
                 </div>
-                <Button 
-                  onClick={goBack}
-                  variant="ghost"
-                  className="w-full h-14"
-                >
-                  ← Назад
-                </Button>
-              </div>
-            )}
-
-            {step === "cycles" && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div className="space-y-2">
-                  <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                    <Battery className="w-8 h-8 text-primary" />
-                    Количество циклов зарядки
-                  </h2>
-                  <p className="text-muted-foreground">Для моделей iPhone 15 и новее это важно</p>
-                </div>
-                <div className="space-y-4">
-                  <Input
-                    type="number"
-                    placeholder="Введите количество циклов"
-                    value={cyclesInput}
-                    onChange={(e) => setCyclesInput(e.target.value)}
-                    className="h-14 text-lg"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    📱 Найти в: Настройки → Основные → Об этом устройстве → Аккумулятор
-                  </p>
-                </div>
-                <Button 
-                  onClick={handleCyclesSubmit}
-                  disabled={!cyclesInput}
-                  className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
-                >
-                  Продолжить
-                </Button>
                 <Button 
                   onClick={goBack}
                   variant="ghost"
@@ -671,7 +623,6 @@ export const PhoneEvaluator = () => {
                       <p className="font-medium">• Модель: {data.model}</p>
                       <p className="font-medium">• Память: {data.storage}</p>
                       <p className="font-medium">• Батарея: {data.battery}</p>
-                      {data.cycles && <p className="font-medium">• Циклы зарядки: {data.cycles}</p>}
                       <p className="font-medium">• Царапины: {data.scratches}</p>
                       <p className="font-medium">• SIM: {data.sim}</p>
                       <p className="font-medium">• Комплект: {data.accessories}</p>
@@ -679,30 +630,17 @@ export const PhoneEvaluator = () => {
                   </div>
 
                   <div className="space-y-3 pt-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        onClick={() => {
-                          const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}${data.cycles ? `\nЦиклы: ${data.cycles}` : ''}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
-                          const encodedMessage = encodeURIComponent(message);
-                          window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
-                        }}
-                        className="h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
-                      >
-                        <MessageCircle className="mr-2 h-5 w-5" />
-                        WhatsApp
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}${data.cycles ? `\nЦиклы: ${data.cycles}` : ''}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
-                          const encodedMessage = encodeURIComponent(message);
-                          window.open(`https://t.me/+79375723173?text=${encodedMessage}`, '_blank');
-                        }}
-                        className="h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
-                      >
-                        <Send className="mr-2 h-5 w-5" />
-                        Telegram
-                      </Button>
-                    </div>
+                    <Button
+                      onClick={() => {
+                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
+                        const encodedMessage = encodeURIComponent(message);
+                        window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
+                      }}
+                      className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
+                    >
+                      <MessageCircle className="mr-2 h-5 w-5" />
+                      Связаться в WhatsApp
+                    </Button>
                     <p className="text-center text-sm text-muted-foreground">
                       Менеджер свяжется с вами в ближайшее время
                     </p>
@@ -771,7 +709,6 @@ export const PhoneEvaluator = () => {
                 {data.model && <span className="bg-primary/10 text-primary px-2 py-1 rounded">📱 {data.model}</span>}
                 {data.storage && <span className="bg-primary/10 text-primary px-2 py-1 rounded">💾 {data.storage}</span>}
                 {data.battery && <span className="bg-primary/10 text-primary px-2 py-1 rounded">🔋 {data.battery}</span>}
-                {data.cycles && <span className="bg-primary/10 text-primary px-2 py-1 rounded">🔄 {data.cycles} циклов</span>}
               </div>
             </div>
           </div>
