@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -91,10 +91,25 @@ export const PhoneEvaluator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
+  const continueButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     document.documentElement.classList.add('dark');
   }, []);
+
+  // Auto-scroll to continue button after 2 seconds if not visible
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (continueButtonRef.current) {
+        const rect = continueButtonRef.current.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+        if (!isVisible) {
+          continueButtonRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [step]);
 
   const steps: Step[] = ["welcome", "model", "storage", "battery", "scratches", "defects", "sim", "accessories", "result"];
   const currentStepIndex = steps.indexOf(step);
@@ -604,7 +619,7 @@ export const PhoneEvaluator = () => {
             )}
 
             {step === "result" && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="text-center space-y-4">
                   <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent">
                     <CheckCircle2 className="w-10 h-10 text-primary-foreground" />
@@ -612,58 +627,48 @@ export const PhoneEvaluator = () => {
                   <h2 className="text-3xl font-bold text-foreground">Отлично! 🎉</h2>
                 </div>
 
-                <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-8 space-y-6 border border-primary/20">
-                  <div className="text-center space-y-3">
-                    <p className="text-xl font-semibold text-foreground">Ваш iPhone подходит под условия выкупа!</p>
-                    <p className="text-lg text-muted-foreground">
-                      Для получения точной оценки и оформления выкупа свяжитесь с нашим менеджером
+                <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-6 space-y-4 border border-primary/20">
+                  <div className="text-center space-y-2">
+                    <p className="text-lg font-semibold text-foreground">Ваш iPhone подходит!</p>
+                    <p className="text-muted-foreground">
+                      Свяжитесь с менеджером для оценки
                     </p>
                   </div>
 
-                  <div className="bg-background/50 rounded-xl p-6 space-y-2">
-                    <p className="text-sm text-muted-foreground">Ваши данные:</p>
-                    <div className="space-y-1">
-                      <p className="font-medium">• Модель: {data.model}</p>
-                      <p className="font-medium">• Память: {data.storage}</p>
-                      <p className="font-medium">• Батарея: {data.battery}</p>
-                      <p className="font-medium">• Царапины: {data.scratches}</p>
-                      <p className="font-medium">• SIM: {data.sim}</p>
-                      <p className="font-medium">• Комплект: {data.accessories}</p>
-                    </div>
+                  <div className="bg-card/80 rounded-xl p-4 space-y-1 text-sm">
+                    <p className="font-medium text-foreground">📱 {data.model} {data.storage}</p>
+                    <p className="text-muted-foreground">🔋 {data.battery} • {data.scratches === "Да" ? "Царапины" : "Без царапин"}</p>
+                    <p className="text-muted-foreground">📦 {data.accessories}</p>
                   </div>
 
-                  <div className="space-y-3 pt-4">
-                    <Button
-                      onClick={() => {
-                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
-                        const encodedMessage = encodeURIComponent(message);
-                        window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
-                      }}
-                      className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
-                    >
-                      <MessageCircle className="mr-2 h-5 w-5" />
-                      Связаться в WhatsApp
-                    </Button>
-                    <p className="text-center text-sm text-muted-foreground">
-                      Менеджер свяжется с вами в ближайшее время
-                    </p>
-                  </div>
+                  <Button
+                    ref={continueButtonRef}
+                    onClick={() => {
+                      const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
+                      const encodedMessage = encodeURIComponent(message);
+                      window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
+                    }}
+                    className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
+                  >
+                    <MessageCircle className="mr-2 h-5 w-5" />
+                    Связаться в WhatsApp
+                  </Button>
                 </div>
 
-                <div className="space-y-3">
+                <div className="flex gap-3">
                   <Button 
                     onClick={() => setStep("accessories")}
                     variant="ghost"
-                    className="w-full h-14"
+                    className="flex-1 h-12"
                   >
                     ← Назад
                   </Button>
                   <Button 
                     onClick={handleRestart} 
                     variant="outline"
-                    className="w-full h-14"
+                    className="flex-1 h-12"
                   >
-                    Начать новую оценку
+                    Заново
                   </Button>
                 </div>
               </div>
