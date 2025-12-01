@@ -641,18 +641,21 @@ export const PhoneEvaluator = () => {
                     <p className="text-muted-foreground">📦 {data.accessories}</p>
                   </div>
 
-                  <Button
-                    ref={continueButtonRef}
-                    onClick={() => {
-                      const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
-                      const encodedMessage = encodeURIComponent(message);
-                      window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
-                    }}
-                    className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
-                  >
-                    <MessageCircle className="mr-2 h-5 w-5" />
-                    Связаться в WhatsApp
-                  </Button>
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-primary/40 rounded-xl blur-md animate-pulse"></div>
+                    <Button
+                      ref={continueButtonRef}
+                      onClick={() => {
+                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
+                        const encodedMessage = encodeURIComponent(message);
+                        window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
+                      }}
+                      className="relative w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl shadow-lg"
+                    >
+                      <MessageCircle className="mr-2 h-5 w-5" />
+                      Связаться в WhatsApp
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="flex gap-3">
