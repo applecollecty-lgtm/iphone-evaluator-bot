@@ -92,23 +92,32 @@ export const PhoneEvaluator = () => {
   const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
   const continueButtonRef = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.classList.add('dark');
   }, []);
 
-  // Auto-scroll to continue button after 2 seconds if not visible
+  // Auto-scroll to continue button after 1.5 seconds if not visible
   useEffect(() => {
     const timer = setTimeout(() => {
       if (continueButtonRef.current) {
         const rect = continueButtonRef.current.getBoundingClientRect();
-        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+        const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
         if (!isVisible) {
           continueButtonRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }
-    }, 2000);
+    }, 1500);
     return () => clearTimeout(timer);
+  }, [step]);
+
+  // Reset scroll position when step changes
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+    window.scrollTo(0, 0);
   }, [step]);
 
   const steps: Step[] = ["welcome", "model", "storage", "battery", "scratches", "defects", "sim", "accessories", "result"];
@@ -304,9 +313,9 @@ export const PhoneEvaluator = () => {
         </div>
       )}
 
-      <div className="flex-1 flex items-center justify-center p-4" {...handlers}>
+      <div className="flex-1 flex items-center justify-center p-4 overflow-y-auto" {...handlers}>
         <Card className="w-full max-w-2xl shadow-elevated bg-gradient-to-br from-card to-card/95 border-border/50">
-          <div className="p-6 md:p-12">
+          <div ref={containerRef} className="p-6 md:p-12 max-h-[calc(100vh-120px)] overflow-y-auto">
             {step === "welcome" && (
               <div className="text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex flex-col items-center space-y-6">
@@ -599,6 +608,7 @@ export const PhoneEvaluator = () => {
 
                 <div className="pt-4 space-y-3">
                   <Button
+                    ref={continueButtonRef}
                     onClick={handleAccessoriesContinue}
                     disabled={isLoading}
                     className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl"
