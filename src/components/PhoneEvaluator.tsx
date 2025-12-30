@@ -104,17 +104,19 @@ export const PhoneEvaluator = () => {
 
   // Auto-scroll to continue button after 1.5 seconds if not visible
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (continueButtonRef.current) {
-        const rect = continueButtonRef.current.getBoundingClientRect();
-        const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
-        if (!isVisible) {
-          continueButtonRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (step === "accessories" || step === "result") {
+      const timer = setTimeout(() => {
+        if (continueButtonRef.current) {
+          const rect = continueButtonRef.current.getBoundingClientRect();
+          const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+          if (!isVisible) {
+            continueButtonRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
         }
-      }
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [step]);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [step, selectedAccessories]);
 
   // Reset scroll position when step changes
   useEffect(() => {
@@ -734,7 +736,8 @@ export const PhoneEvaluator = () => {
                         window.open(`https://max.ru/u/f9LHodD0cOJSzg_7ouewijiGCO0kc--KBjIIv9Nv43oUCDTGNVFD7RM-Vcg?text=${encodedMessage}`, '_blank');
                       }}
                       variant="outline"
-                      className="w-full h-14 text-lg rounded-xl border-2 border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/10"
+                      className="w-full h-14 text-lg rounded-xl"
+                      style={{ borderColor: '#8B5CF6', borderWidth: '2px', color: '#8B5CF6' }}
                     >
                       <MessageCircle className="mr-2 h-5 w-5" />
                       Связаться в Max
