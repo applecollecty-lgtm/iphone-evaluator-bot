@@ -2,14 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check, MessageCircle, Mic, TrendingUp, Zap } from "lucide-react";
+import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check, MessageCircle, Mic, TrendingUp, Zap, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useSwipeable } from "react-swipeable";
 import logo from "@/assets/eoffer-logo.jpg";
 
-type Step = "welcome" | "model" | "storage" | "battery" | "scratches" | "defects" | "sim" | "accessories" | "result" | "rejected";
+type Step = "welcome" | "model" | "storage" | "battery" | "scratches" | "defects" | "sim" | "accessories" | "timeline" | "result" | "rejected";
 
 interface EvaluationData {
   model: string;
@@ -19,6 +19,7 @@ interface EvaluationData {
   defects: string;
   sim: string;
   accessories: string;
+  timeline: string;
 }
 
 const MODELS = [
@@ -76,6 +77,8 @@ const BATTERY_OPTIONS = [
 
 const SIM_OPTIONS = ["SIM + eSIM", "2 SIM", "eSIM"];
 
+const TIMELINE_OPTIONS = ["Сегодня-завтра", "На неделе", "В этом месяце"];
+
 export const PhoneEvaluator = () => {
   const [step, setStep] = useState<Step>("welcome");
   const [data, setData] = useState<EvaluationData>({
@@ -86,6 +89,7 @@ export const PhoneEvaluator = () => {
     defects: "",
     sim: "",
     accessories: "",
+    timeline: "",
   });
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -120,7 +124,7 @@ export const PhoneEvaluator = () => {
     window.scrollTo(0, 0);
   }, [step]);
 
-  const steps: Step[] = ["welcome", "model", "storage", "battery", "scratches", "defects", "sim", "accessories", "result"];
+  const steps: Step[] = ["welcome", "model", "storage", "battery", "scratches", "defects", "sim", "accessories", "timeline", "result"];
   const currentStepIndex = steps.indexOf(step);
   const progress = step === "welcome" ? 0 : ((currentStepIndex) / (steps.length - 2)) * 100;
 
@@ -176,12 +180,17 @@ export const PhoneEvaluator = () => {
     );
   };
 
-  const handleAccessoriesContinue = async () => {
+  const handleAccessoriesContinue = () => {
     const accessoriesText = selectedAccessories.length > 0 
       ? selectedAccessories.join(", ") 
       : "Ничего";
     
-    const updatedData = { ...data, accessories: accessoriesText };
+    setData({ ...data, accessories: accessoriesText });
+    setStep("timeline");
+  };
+
+  const handleTimelineSelect = async (timeline: string) => {
+    const updatedData = { ...data, timeline };
     setData(updatedData);
     setIsLoading(true);
     
@@ -196,7 +205,7 @@ export const PhoneEvaluator = () => {
           sim: updatedData.sim,
           accessories: updatedData.accessories,
           estimated_price: 0,
-          sale_timeline: null,
+          sale_timeline: timeline,
         }
       });
 
@@ -231,6 +240,7 @@ export const PhoneEvaluator = () => {
       defects: "",
       sim: "",
       accessories: "",
+      timeline: "",
     });
     setSelectedAccessories([]);
     setRejectionReason("");
@@ -247,7 +257,8 @@ export const PhoneEvaluator = () => {
       defects: "scratches",
       sim: "defects",
       accessories: "sim",
-      result: "accessories",
+      timeline: "accessories",
+      result: "timeline",
       rejected: "welcome",
     };
     setStep(stepMap[step]);
@@ -628,6 +639,37 @@ export const PhoneEvaluator = () => {
               </div>
             )}
 
+            {step === "timeline" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold text-foreground">Когда хотели бы продать?</h2>
+                  <p className="text-muted-foreground">Последний вопрос!</p>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  {TIMELINE_OPTIONS.map((timeline) => (
+                    <Button
+                      key={timeline}
+                      onClick={() => handleTimelineSelect(timeline)}
+                      disabled={isLoading}
+                      variant="outline"
+                      className="h-20 text-lg hover:bg-primary/10 hover:border-primary transition-all duration-200 rounded-xl"
+                    >
+                      {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                      {timeline}
+                    </Button>
+                  ))}
+                </div>
+                <Button 
+                  onClick={goBack}
+                  variant="ghost"
+                  className="w-full h-14"
+                  disabled={isLoading}
+                >
+                  ← Назад
+                </Button>
+              </div>
+            )}
+
             {step === "result" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="text-center space-y-4">
@@ -649,28 +691,60 @@ export const PhoneEvaluator = () => {
                     <p className="font-medium text-foreground">📱 {data.model} {data.storage}</p>
                     <p className="text-muted-foreground">🔋 {data.battery} • {data.scratches === "Да" ? "Царапины" : "Без царапин"}</p>
                     <p className="text-muted-foreground">📦 {data.accessories}</p>
+                    <p className="text-muted-foreground">⏰ {data.timeline}</p>
                   </div>
 
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-primary/40 rounded-xl blur-md animate-pulse"></div>
+                  <div className="space-y-3">
+                    {/* WhatsApp Button */}
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-primary/40 rounded-xl blur-md animate-pulse"></div>
+                      <Button
+                        ref={continueButtonRef}
+                        onClick={() => {
+                          const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}\nСроки: ${data.timeline}`;
+                          const encodedMessage = encodeURIComponent(message);
+                          window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
+                        }}
+                        className="relative w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl shadow-lg"
+                      >
+                        <MessageCircle className="mr-2 h-5 w-5" />
+                        Связаться в WhatsApp
+                      </Button>
+                    </div>
+
+                    {/* Telegram Button */}
                     <Button
-                      ref={continueButtonRef}
                       onClick={() => {
-                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}`;
+                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}\nСроки: ${data.timeline}`;
                         const encodedMessage = encodeURIComponent(message);
-                        window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
+                        window.open(`https://t.me/eofffer?text=${encodedMessage}`, '_blank');
                       }}
-                      className="relative w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 rounded-xl shadow-lg"
+                      variant="outline"
+                      className="w-full h-14 text-lg rounded-xl border-2 border-[#229ED9] text-[#229ED9] hover:bg-[#229ED9]/10"
+                    >
+                      <Send className="mr-2 h-5 w-5" />
+                      Связаться в Telegram
+                    </Button>
+
+                    {/* Max Button */}
+                    <Button
+                      onClick={() => {
+                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}\nСроки: ${data.timeline}`;
+                        const encodedMessage = encodeURIComponent(message);
+                        window.open(`https://max.ru/u/f9LHodD0cOJSzg_7ouewijiGCO0kc--KBjIIv9Nv43oUCDTGNVFD7RM-Vcg?text=${encodedMessage}`, '_blank');
+                      }}
+                      variant="outline"
+                      className="w-full h-14 text-lg rounded-xl border-2 border-[#FF6B00] text-[#FF6B00] hover:bg-[#FF6B00]/10"
                     >
                       <MessageCircle className="mr-2 h-5 w-5" />
-                      Связаться в WhatsApp
+                      Связаться в Max
                     </Button>
                   </div>
                 </div>
 
                 <div className="flex gap-3">
                   <Button 
-                    onClick={() => setStep("accessories")}
+                    onClick={() => setStep("timeline")}
                     variant="ghost"
                     className="flex-1 h-12"
                   >
