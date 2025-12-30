@@ -734,7 +734,7 @@ export const PhoneEvaluator = () => {
                         window.open(`https://max.ru/u/f9LHodD0cOJSzg_7ouewijiGCO0kc--KBjIIv9Nv43oUCDTGNVFD7RM-Vcg?text=${encodedMessage}`, '_blank');
                       }}
                       variant="outline"
-                      className="w-full h-14 text-lg rounded-xl border-2 border-[#FF6B00] text-[#FF6B00] hover:bg-[#FF6B00]/10"
+                      className="w-full h-14 text-lg rounded-xl border-2 border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/10"
                     >
                       <MessageCircle className="mr-2 h-5 w-5" />
                       Связаться в Max
