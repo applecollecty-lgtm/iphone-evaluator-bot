@@ -748,7 +748,10 @@ export const PhoneEvaluator = () => {
                             style={{ borderColor: '#8B5CF6', borderWidth: '2px', color: '#8B5CF6' }}
                           >
                             <Copy className="mr-2 h-5 w-5" />
-                            Связаться в Max
+                            <span className="flex flex-col items-start leading-tight">
+                              <span>Связаться в Max</span>
+                              <span className="text-xs opacity-70">(скопирует сообщение)</span>
+                            </span>
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
