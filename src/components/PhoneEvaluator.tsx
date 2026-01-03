@@ -717,7 +717,7 @@ export const PhoneEvaluator = () => {
                     {/* Telegram Button */}
                     <Button
                       onClick={() => {
-                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}\nСроки: ${data.timeline}`;
+                        const message = `👋 Добрый день! Интересует оценка:\n\n📱 Модель: ${data.model} ${data.storage}\n🔋 Аккумулятор: ${data.battery}\n✨ Царапины: ${data.scratches}\n📦 Комплект: ${data.accessories}\n⏰ Сроки: ${data.timeline}`;
                         const encodedMessage = encodeURIComponent(message);
                         window.open(`https://t.me/eofffer?text=${encodedMessage}`, '_blank');
                       }}
@@ -731,9 +731,9 @@ export const PhoneEvaluator = () => {
                     {/* Max Button */}
                     <Button
                       onClick={() => {
-                        const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}\nСроки: ${data.timeline}`;
+                        const message = `👋 Добрый день! Интересует оценка:\n\n📱 Модель: ${data.model} ${data.storage}\n🔋 Аккумулятор: ${data.battery}\n✨ Царапины: ${data.scratches}\n📦 Комплект: ${data.accessories}\n⏰ Сроки: ${data.timeline}`;
                         const encodedMessage = encodeURIComponent(message);
-                        window.open(`https://max.ru/u/f9LHodD0cOJSzg_7ouewijiGCO0kc--KBjIIv9Nv43oUCDTGNVFD7RM-Vcg?text=${encodedMessage}`, '_blank');
+                        window.open(`https://max.ru/u/f9LHodD0cOJSzg_7ouewijiGCO0kc--KBjIIv9Nv43oUCDTGNVFD7RM-Vcg`, '_blank');
                       }}
                       variant="outline"
                       className="w-full h-14 text-lg rounded-xl"
