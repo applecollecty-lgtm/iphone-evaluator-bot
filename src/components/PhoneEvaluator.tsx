@@ -750,7 +750,7 @@ export const PhoneEvaluator = () => {
                             <Copy className="mr-2 h-5 w-5" />
                             <span className="flex flex-col items-start leading-tight">
                               <span>Связаться в Max</span>
-                              <span className="text-xs opacity-70">(скопирует сообщение)</span>
+                              <span className="text-xs opacity-70">(нажмите «Вставить» в чате)</span>
                             </span>
                           </Button>
                         </TooltipTrigger>
