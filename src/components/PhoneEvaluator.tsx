@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check, MessageCircle, Mic, TrendingUp, Zap, Send } from "lucide-react";
+import { Smartphone, Battery, AlertCircle, CheckCircle2, ChevronRight, Loader2, Check, MessageCircle, Mic, TrendingUp, Zap, Send, Copy } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -729,19 +730,32 @@ export const PhoneEvaluator = () => {
                     </Button>
 
                     {/* Max Button */}
-                    <Button
-                      onClick={() => {
-                        const message = `👋 Добрый день! Интересует оценка:\n\n📱 Модель: ${data.model} ${data.storage}\n🔋 Аккумулятор: ${data.battery}\n✨ Царапины: ${data.scratches}\n📦 Комплект: ${data.accessories}\n⏰ Сроки: ${data.timeline}`;
-                        const encodedMessage = encodeURIComponent(message);
-                        window.open(`https://max.ru/u/f9LHodD0cOJSzg_7ouewijiGCO0kc--KBjIIv9Nv43oUCDTGNVFD7RM-Vcg`, '_blank');
-                      }}
-                      variant="outline"
-                      className="w-full h-14 text-lg rounded-xl"
-                      style={{ borderColor: '#8B5CF6', borderWidth: '2px', color: '#8B5CF6' }}
-                    >
-                      <MessageCircle className="mr-2 h-5 w-5" />
-                      Связаться в Max
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={async () => {
+                              const message = `👋 Добрый день! Интересует оценка:\n\n📱 Модель: ${data.model} ${data.storage}\n🔋 Аккумулятор: ${data.battery}\n✨ Царапины: ${data.scratches}\n📦 Комплект: ${data.accessories}\n⏰ Сроки: ${data.timeline}`;
+                              await navigator.clipboard.writeText(message);
+                              toast({
+                                title: "Скопировано!",
+                                description: "Сообщение скопировано, вставьте его в чат",
+                              });
+                              window.open(`https://max.ru/u/f9LHodD0cOJSzg_7ouewijiGCO0kc--KBjIIv9Nv43oUCDTGNVFD7RM-Vcg`, '_blank');
+                            }}
+                            variant="outline"
+                            className="w-full h-14 text-lg rounded-xl"
+                            style={{ borderColor: '#8B5CF6', borderWidth: '2px', color: '#8B5CF6' }}
+                          >
+                            <Copy className="mr-2 h-5 w-5" />
+                            Связаться в Max
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Сообщение скопируется автоматически</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
 
