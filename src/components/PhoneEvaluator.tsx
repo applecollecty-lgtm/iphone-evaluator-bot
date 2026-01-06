@@ -687,7 +687,7 @@ export const PhoneEvaluator = () => {
                       <Button
                         ref={continueButtonRef}
                         onClick={() => {
-                          const message = `Добрый день, интересует оценка:\nМодель, память: ${data.model} ${data.storage}\nАккумулятор: ${data.battery}\nЦарапины: ${data.scratches}\nКомплект: ${data.accessories}\nСроки: ${data.timeline}`;
+                          const message = `👋 Добрый день! Интересует оценка:\n\n📱 Модель: ${data.model} ${data.storage}\n🔋 Аккумулятор: ${data.battery}\n✨ Царапины: ${data.scratches}\n📦 Комплект: ${data.accessories}\n⏰ Сроки: ${data.timeline}`;
                           const encodedMessage = encodeURIComponent(message);
                           window.open(`https://api.whatsapp.com/send/?phone=79375723173&text=${encodedMessage}&type=phone_number&app_absent=0`, '_blank');
                         }}
