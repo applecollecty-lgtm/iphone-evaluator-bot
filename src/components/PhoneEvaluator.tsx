@@ -192,46 +192,29 @@ export const PhoneEvaluator = () => {
     setStep("timeline");
   };
 
-  const handleTimelineSelect = async (timeline: string) => {
+  const handleTimelineSelect = (timeline: string) => {
     const updatedData = { ...data, timeline };
     setData(updatedData);
-    setIsLoading(true);
     
-    try {
-      const { error } = await supabase.functions.invoke('save-lead', {
-        body: {
-          model: updatedData.model,
-          storage: updatedData.storage,
-          battery: updatedData.battery,
-          scratches: updatedData.scratches,
-          defects: updatedData.defects,
-          sim: updatedData.sim,
-          accessories: updatedData.accessories,
-          estimated_price: 0,
-          sale_timeline: timeline,
-        }
-      });
-
-      if (error) {
-        console.error('Error saving lead:', error);
-        toast({
-          title: "Ошибка",
-          description: "Не удалось сохранить данные. Попробуйте позже.",
-          variant: "destructive",
-        });
+    // Переход сразу, сохранение в фоне
+    setStep("result");
+    
+    // Сохраняем данные в фоне без блокировки UI
+    supabase.functions.invoke('save-lead', {
+      body: {
+        model: updatedData.model,
+        storage: updatedData.storage,
+        battery: updatedData.battery,
+        scratches: updatedData.scratches,
+        defects: updatedData.defects,
+        sim: updatedData.sim,
+        accessories: updatedData.accessories,
+        estimated_price: 0,
+        sale_timeline: timeline,
       }
-      
-      setStep("result");
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Ошибка",
-        description: "Произошла ошибка при отправке данных.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    }).catch((error) => {
+      console.error('Error saving lead:', error);
+    });
   };
 
   const handleRestart = () => {
