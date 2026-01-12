@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useSwipeable } from "react-swipeable";
 import logo from "@/assets/eoffer-logo.jpg";
-import scratchesScreen from "@/assets/scratches-screen.jpg";
 import scratchesBody from "@/assets/scratches-body.jpg";
 import scratchesIdeal from "@/assets/scratches-ideal.jpg";
 
@@ -487,36 +486,26 @@ export const PhoneEvaluator = () => {
                 </div>
                 
                 {/* Примеры царапин */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2 text-center">
-                    <div className="relative rounded-xl overflow-hidden border-2 border-destructive/50 bg-destructive/5">
-                      <img 
-                        src={scratchesScreen} 
-                        alt="Царапины на экране" 
-                        className="w-full h-24 object-cover"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">На экране 📱</p>
-                  </div>
-                  <div className="space-y-2 text-center">
-                    <div className="relative rounded-xl overflow-hidden border-2 border-orange-500/50 bg-orange-500/5">
-                      <img 
-                        src={scratchesBody} 
-                        alt="Царапины на корпусе" 
-                        className="w-full h-24 object-cover"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">На корпусе 🔧</p>
-                  </div>
-                  <div className="space-y-2 text-center">
-                    <div className="relative rounded-xl overflow-hidden border-2 border-primary/50 bg-primary/5">
+                    <div className="relative rounded-2xl overflow-hidden border-2 border-primary/50 bg-card">
                       <img 
                         src={scratchesIdeal} 
-                        alt="Идеальное состояние" 
-                        className="w-full h-24 object-cover"
+                        alt="Без дефектов" 
+                        className="w-full h-32 object-contain"
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground">Идеал ✨</p>
+                    <p className="text-sm text-muted-foreground font-medium">Без дефектов ✨</p>
+                  </div>
+                  <div className="space-y-2 text-center">
+                    <div className="relative rounded-2xl overflow-hidden border-2 border-orange-500/50 bg-card">
+                      <img 
+                        src={scratchesBody} 
+                        alt="Мелкие царапины" 
+                        className="w-full h-32 object-contain"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground font-medium">Мелкие царапины 🔧</p>
                   </div>
                 </div>
 
