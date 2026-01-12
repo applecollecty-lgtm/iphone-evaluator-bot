@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useSwipeable } from "react-swipeable";
 import logo from "@/assets/eoffer-logo.jpg";
+import scratchesScreen from "@/assets/scratches-screen.jpg";
+import scratchesBody from "@/assets/scratches-body.jpg";
+import scratchesIdeal from "@/assets/scratches-ideal.jpg";
 
 type Step = "welcome" | "model" | "storage" | "battery" | "scratches" | "defects" | "sim" | "accessories" | "timeline" | "result" | "rejected";
 
@@ -26,6 +29,7 @@ interface EvaluationData {
 const MODELS = [
   "iPhone 17 Pro Max",
   "iPhone 17 Pro",
+  "iPhone 17 Air",
   "iPhone 17",
   "iPhone 16 Pro Max",
   "iPhone 16 Pro",
@@ -481,6 +485,41 @@ export const PhoneEvaluator = () => {
                   <h2 className="text-3xl font-bold text-foreground">Есть царапины на корпусе или экране?</h2>
                   <p className="text-muted-foreground">Будь честен, это важно для оценки</p>
                 </div>
+                
+                {/* Примеры царапин */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-2 text-center">
+                    <div className="relative rounded-xl overflow-hidden border-2 border-destructive/50 bg-destructive/5">
+                      <img 
+                        src={scratchesScreen} 
+                        alt="Царапины на экране" 
+                        className="w-full h-24 object-cover"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">На экране 📱</p>
+                  </div>
+                  <div className="space-y-2 text-center">
+                    <div className="relative rounded-xl overflow-hidden border-2 border-orange-500/50 bg-orange-500/5">
+                      <img 
+                        src={scratchesBody} 
+                        alt="Царапины на корпусе" 
+                        className="w-full h-24 object-cover"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">На корпусе 🔧</p>
+                  </div>
+                  <div className="space-y-2 text-center">
+                    <div className="relative rounded-xl overflow-hidden border-2 border-primary/50 bg-primary/5">
+                      <img 
+                        src={scratchesIdeal} 
+                        alt="Идеальное состояние" 
+                        className="w-full h-24 object-cover"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">Идеал ✨</p>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <Button
                     onClick={() => handleScratchesSelect("Да")}
