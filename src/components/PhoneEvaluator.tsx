@@ -9,8 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useSwipeable } from "react-swipeable";
 import logo from "@/assets/eoffer-logo.jpg";
-import scratchesBody from "@/assets/scratches-body.jpg";
-import scratchesIdeal from "@/assets/scratches-ideal.jpg";
 
 type Step = "welcome" | "model" | "storage" | "battery" | "scratches" | "defects" | "sim" | "accessories" | "timeline" | "result" | "rejected";
 
@@ -483,30 +481,6 @@ export const PhoneEvaluator = () => {
                 <div className="space-y-2">
                   <h2 className="text-3xl font-bold text-foreground">Есть царапины на корпусе или экране?</h2>
                   <p className="text-muted-foreground">Будь честен, это важно для оценки</p>
-                </div>
-                
-                {/* Примеры царапин */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2 text-center">
-                    <div className="relative rounded-2xl overflow-hidden border-2 border-primary/50 bg-card">
-                      <img 
-                        src={scratchesIdeal} 
-                        alt="Без дефектов" 
-                        className="w-full h-32 object-contain"
-                      />
-                    </div>
-                    <p className="text-sm text-muted-foreground font-medium">Без дефектов ✨</p>
-                  </div>
-                  <div className="space-y-2 text-center">
-                    <div className="relative rounded-2xl overflow-hidden border-2 border-orange-500/50 bg-card">
-                      <img 
-                        src={scratchesBody} 
-                        alt="Мелкие царапины" 
-                        className="w-full h-32 object-contain"
-                      />
-                    </div>
-                    <p className="text-sm text-muted-foreground font-medium">Мелкие царапины 🔧</p>
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
