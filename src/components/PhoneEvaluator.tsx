@@ -726,7 +726,7 @@ export const PhoneEvaluator = () => {
                                 title: "Скопировано!",
                                 description: "Сообщение скопировано, вставьте его в чат",
                               });
-                              window.open(`https://max.ru/u/f9LHodD0cOJSzg_7ouewijiGCO0kc--KBjIIv9Nv43oUCDTGNVFD7RM-Vcg`, '_blank');
+                              window.open(`https://max.ru/u/f9LHodD0cOJhOo9RkiGtlbouWLdIia3QK7mTBFMCQ8l2U4EfKpF4ehl9OSs`, '_blank');
                             }}
                             variant="outline"
                             className="w-full h-14 text-lg rounded-xl"
