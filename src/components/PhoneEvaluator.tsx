@@ -781,6 +781,28 @@ export const PhoneEvaluator = () => {
                   </p>
                 </div>
 
+                {/* Призыв к подписке на Telegram - перемещён выше с анимацией */}
+                <div className="bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl p-6 border-2 border-primary/40 space-y-4 animate-pulse-slow relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 animate-pulse" />
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <Send className="w-7 h-7 text-primary animate-bounce" />
+                      <h3 className="text-xl font-bold text-foreground">Подпишись на наш Telegram!</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground text-center leading-relaxed mb-4">
+                      Чтобы не потерять нас, когда понадобится быстро продать технику 📱<br />
+                      <span className="text-primary font-medium">Выкупаем: iPhone, MacBook, Apple Watch, Sony PlayStation</span>
+                    </p>
+                    <Button
+                      onClick={() => window.open('https://t.me/eoffer_site', '_blank')}
+                      className="w-full h-14 bg-[#0088cc] hover:bg-[#0077b5] text-white font-semibold rounded-xl transition-all shadow-lg shadow-[#0088cc]/30 hover:shadow-[#0088cc]/50"
+                    >
+                      <Send className="mr-2 w-5 h-5" />
+                      Подписаться на канал
+                    </Button>
+                  </div>
+                </div>
+
                 <div className="text-center space-y-4 pt-4">
                   <p className="text-muted-foreground">
                     Мы выкупаем модели начиная с iPhone 13,<br />
@@ -788,28 +810,10 @@ export const PhoneEvaluator = () => {
                   </p>
                   <Button 
                     onClick={handleRestart}
-                    className="mt-4 h-14 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
+                    variant="outline"
+                    className="mt-4 h-14 border-muted-foreground/30 hover:bg-muted/50"
                   >
                     Попробовать снова
-                  </Button>
-                </div>
-
-                {/* Призыв к подписке на Telegram */}
-                <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-6 border border-primary/20 space-y-4 mt-4">
-                  <div className="flex items-center justify-center gap-2">
-                    <Send className="w-6 h-6 text-primary" />
-                    <h3 className="text-lg font-bold text-foreground">Подпишись на наш Telegram!</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground text-center leading-relaxed">
-                    Чтобы не потерять нас, когда понадобится быстро продать технику 📱<br />
-                    <span className="text-primary font-medium">Выкупаем: iPhone, MacBook, Apple Watch, Sony PlayStation</span>
-                  </p>
-                  <Button
-                    onClick={() => window.open('https://t.me/eoffer_site', '_blank')}
-                    className="w-full h-14 bg-[#0088cc] hover:bg-[#0077b5] text-white font-semibold rounded-xl transition-all"
-                  >
-                    <Send className="mr-2 w-5 h-5" />
-                    Подписаться на канал
                   </Button>
                 </div>
               </div>
