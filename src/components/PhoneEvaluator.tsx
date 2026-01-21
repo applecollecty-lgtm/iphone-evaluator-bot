@@ -793,6 +793,25 @@ export const PhoneEvaluator = () => {
                     Попробовать снова
                   </Button>
                 </div>
+
+                {/* Призыв к подписке на Telegram */}
+                <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-6 border border-primary/20 space-y-4 mt-4">
+                  <div className="flex items-center justify-center gap-2">
+                    <Send className="w-6 h-6 text-primary" />
+                    <h3 className="text-lg font-bold text-foreground">Подпишись на наш Telegram!</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground text-center leading-relaxed">
+                    Чтобы не потерять нас, когда понадобится быстро продать технику 📱<br />
+                    <span className="text-primary font-medium">Выкупаем: iPhone, MacBook, Apple Watch, Sony PlayStation</span>
+                  </p>
+                  <Button
+                    onClick={() => window.open('https://t.me/eoffer_site', '_blank')}
+                    className="w-full h-14 bg-[#0088cc] hover:bg-[#0077b5] text-white font-semibold rounded-xl transition-all"
+                  >
+                    <Send className="mr-2 w-5 h-5" />
+                    Подписаться на канал
+                  </Button>
+                </div>
               </div>
             )}
           </div>
